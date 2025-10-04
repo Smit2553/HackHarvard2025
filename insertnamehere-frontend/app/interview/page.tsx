@@ -52,6 +52,11 @@ export default function InterviewPage() {
   const [error, setError] = useState<string | null>(null);
   const [timeInSeconds, setTimeInSeconds] = useState(15 * 60); // 15 minutes in seconds
   const [showEndDialog, setShowEndDialog] = useState(false);
+  const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
+  const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
+  const [leftPanelWidth, setLeftPanelWidth] = useState(384); // 96 * 4 = 384px (w-96)
+  const [rightPanelWidth, setRightPanelWidth] = useState(384);
+  const [isResizing, setIsResizing] = useState<"left" | "right" | null>(null);
 
   // Temporary transcript data
   const tempTranscriptMessages = [
@@ -102,6 +107,42 @@ export default function InterviewPage() {
     fetchProblem();
   }, []);
 
+  // Handle mouse move for resizing
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+
+      if (isResizing === "left") {
+        const newWidth = Math.max(200, Math.min(800, e.clientX));
+        setLeftPanelWidth(newWidth);
+      } else if (isResizing === "right") {
+        const newWidth = Math.max(
+          200,
+          Math.min(800, window.innerWidth - e.clientX),
+        );
+        setRightPanelWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(null);
+    };
+
+    if (isResizing) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+  }, [isResizing]);
+
   // Timer effect - counts down from 15 minutes, then counts up
   useEffect(() => {
     const timer = setInterval(() => {
@@ -135,8 +176,15 @@ export default function InterviewPage() {
 
   return (
     <div className="h-screen w-screen flex flex-col lg:flex-row overflow-hidden">
-      {/* Left Column - Info Panel (fixed width on desktop) */}
-      <aside className="w-full lg:w-96 lg:flex-shrink-0 h-64 lg:h-full border-b lg:border-b-0 lg:border-r border-neutral-800">
+      {/* Left Column - Info Panel (resizable on desktop) */}
+      <aside
+        className="h-64 lg:h-full border-b lg:border-b-0 lg:border-r border-neutral-800 flex-shrink-0 relative transition-all duration-300"
+        style={{
+          width: leftPanelCollapsed ? "60px" : `${leftPanelWidth}px`,
+          minWidth: leftPanelCollapsed ? "60px" : "200px",
+          maxWidth: leftPanelCollapsed ? "60px" : "800px",
+        }}
+      >
         {loading ? (
           <div className="h-full flex items-center justify-center bg-black">
             <div className="text-center">
@@ -155,8 +203,18 @@ export default function InterviewPage() {
             type={problemData.type}
             description={problemData.description}
             exampleTestCase={problemData.example_test_case}
+            isCollapsed={leftPanelCollapsed}
+            onToggleCollapse={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
           />
         ) : null}
+
+        {/* Resize Handle */}
+        {!leftPanelCollapsed && (
+          <div
+            className="hidden lg:block absolute right-0 top-0 bottom-0 w-1 hover:w-2 bg-neutral-700 hover:bg-neutral-500 cursor-col-resize transition-all z-10"
+            onMouseDown={() => setIsResizing("left")}
+          />
+        )}
       </aside>
 
       {/* Middle Column - Editor Area */}
@@ -207,9 +265,28 @@ export default function InterviewPage() {
         </div>
       </main>
 
-      {/* Right Column - Transcript Panel (fixed width on desktop) */}
-      <aside className="w-full lg:w-96 lg:flex-shrink-0 h-64 lg:h-full border-t lg:border-t-0 lg:border-l border-neutral-800">
-        <TranscriptPanel messages={tempTranscriptMessages} />
+      {/* Right Column - Transcript Panel (resizable on desktop) */}
+      <aside
+        className="h-64 lg:h-full border-t lg:border-t-0 lg:border-l border-neutral-800 flex-shrink-0 relative transition-all duration-300"
+        style={{
+          width: rightPanelCollapsed ? "60px" : `${rightPanelWidth}px`,
+          minWidth: rightPanelCollapsed ? "60px" : "200px",
+          maxWidth: rightPanelCollapsed ? "60px" : "800px",
+        }}
+      >
+        {/* Resize Handle */}
+        {!rightPanelCollapsed && (
+          <div
+            className="hidden lg:block absolute left-0 top-0 bottom-0 w-1 hover:w-2 bg-neutral-700 hover:bg-neutral-500 cursor-col-resize transition-all z-10"
+            onMouseDown={() => setIsResizing("right")}
+          />
+        )}
+
+        <TranscriptPanel
+          messages={tempTranscriptMessages}
+          isCollapsed={rightPanelCollapsed}
+          onToggleCollapse={() => setRightPanelCollapsed(!rightPanelCollapsed)}
+        />
       </aside>
 
       {/* End Mock Confirmation Dialog */}
