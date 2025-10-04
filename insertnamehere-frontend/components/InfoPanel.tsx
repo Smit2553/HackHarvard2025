@@ -1,3 +1,5 @@
+"use client";
+
 interface InfoPanelProps {
   title?: string;
   type?: string;
@@ -7,6 +9,8 @@ interface InfoPanelProps {
     output: string;
     explanation: string;
   };
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 /**
@@ -25,50 +29,113 @@ export default function InfoPanel({
   type = "",
   description = "",
   exampleTestCase,
+  isCollapsed = false,
+  onToggleCollapse,
 }: InfoPanelProps) {
+  // If collapsed, show a vertical tab button
+  if (isCollapsed && onToggleCollapse) {
+    return (
+      <div className="h-full flex items-center justify-center bg-black">
+        <button
+          onClick={onToggleCollapse}
+          className="h-32 w-full flex flex-col items-center justify-center gap-2 text-neutral-400 hover:text-white hover:bg-neutral-900 transition-all group"
+          aria-label="Expand panel"
+        >
+          <svg
+            className="w-5 h-5 transform rotate-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 5l7 7-7 7M5 5l7 7-7 7"
+            />
+          </svg>
+          <span
+            className="text-xs writing-mode-vertical transform -rotate-180"
+            style={{ writingMode: "vertical-rl" }}
+          >
+            Problem
+          </span>
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900 p-6 overflow-y-auto">
+    <div className="h-full flex flex-col bg-black p-6 overflow-y-auto">
       {/* Title Section */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          {title}
-        </h1>
-        {type && (
-          <div className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-sm font-medium rounded-full">
-            {type}
-          </div>
+      <div className="mb-6 flex items-start justify-between">
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold text-white mb-2">{title}</h1>
+          {type && (
+            <div className="inline-block px-3 py-1 bg-neutral-800 text-neutral-200 text-sm font-medium rounded-full border border-neutral-700">
+              {type}
+            </div>
+          )}
+          <div className="h-1 w-20 bg-white rounded mt-3"></div>
+        </div>
+        {onToggleCollapse && (
+          <button
+            onClick={onToggleCollapse}
+            className="text-neutral-400 hover:text-white transition-colors p-1 ml-2"
+            aria-label={isCollapsed ? "Expand panel" : "Collapse panel"}
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              {isCollapsed ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 5l7 7-7 7M5 5l7 7-7 7"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+                />
+              )}
+            </svg>
+          </button>
         )}
-        <div className="h-1 w-20 bg-blue-600 rounded mt-3"></div>
       </div>
 
       {/* Description Section */}
-      {description && (
+      {!isCollapsed && description && (
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">
+          <h2 className="text-lg font-semibold text-neutral-200 mb-3">
             Description
           </h2>
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              {description}
-            </p>
+          <div className="bg-neutral-900 rounded-lg border border-neutral-800 p-4">
+            <p className="text-neutral-300 leading-relaxed">{description}</p>
           </div>
         </div>
       )}
 
       {/* Example Test Case Section */}
-      {exampleTestCase && (
+      {!isCollapsed && exampleTestCase && (
         <div className="flex-1">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">
+          <h2 className="text-lg font-semibold text-neutral-200 mb-3">
             Example
           </h2>
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+          <div className="bg-neutral-900 rounded-lg border border-neutral-800 p-4 space-y-4">
             {/* Input */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <h3 className="text-sm font-semibold text-neutral-300 mb-2">
                 Input:
               </h3>
-              <pre className="bg-gray-100 dark:bg-gray-900 rounded p-3 overflow-x-auto text-sm">
-                <code className="text-gray-800 dark:text-gray-200 font-mono">
+              <pre className="bg-black rounded p-3 overflow-x-auto text-sm border border-neutral-800">
+                <code className="text-neutral-200 font-mono">
                   {exampleTestCase.input}
                 </code>
               </pre>
@@ -76,11 +143,11 @@ export default function InfoPanel({
 
             {/* Output */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <h3 className="text-sm font-semibold text-neutral-300 mb-2">
                 Output:
               </h3>
-              <pre className="bg-gray-100 dark:bg-gray-900 rounded p-3 overflow-x-auto text-sm">
-                <code className="text-gray-800 dark:text-gray-200 font-mono">
+              <pre className="bg-black rounded p-3 overflow-x-auto text-sm border border-neutral-800">
+                <code className="text-neutral-200 font-mono">
                   {exampleTestCase.output}
                 </code>
               </pre>
@@ -88,10 +155,10 @@ export default function InfoPanel({
 
             {/* Explanation */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <h3 className="text-sm font-semibold text-neutral-300 mb-2">
                 Explanation:
               </h3>
-              <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+              <p className="text-neutral-300 text-sm leading-relaxed">
                 {exampleTestCase.explanation}
               </p>
             </div>
@@ -100,11 +167,13 @@ export default function InfoPanel({
       )}
 
       {/* Footer note */}
-      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <p className="text-xs text-gray-500 dark:text-gray-500 text-center">
-          💡 Tip: This panel is fixed width on larger screens
-        </p>
-      </div>
+      {!isCollapsed && (
+        <div className="mt-6 pt-4 border-t border-neutral-800">
+          <p className="text-xs text-neutral-500 text-center">
+            💡 Tip: This panel is fixed width on larger screens
+          </p>
+        </div>
+      )}
     </div>
   );
 }
