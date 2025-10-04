@@ -100,10 +100,10 @@ export default function InterviewPage() {
   const handleEndMock = () => {
     // Terminate the Vapi call
     endCall();
-    
+
     // Close the dialog
     setShowEndDialog(false);
-    
+
     // Route back to start page
     router.push("/start");
   };
@@ -111,21 +111,17 @@ export default function InterviewPage() {
   return (
     <div className="h-screen w-screen flex flex-col lg:flex-row overflow-hidden">
       {/* Left Column - Info Panel (fixed width on desktop) */}
-      <aside className="w-full lg:w-96 lg:flex-shrink-0 h-64 lg:h-full border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-700">
+      <aside className="w-full lg:w-96 lg:flex-shrink-0 h-64 lg:h-full border-b lg:border-b-0 lg:border-r border-neutral-800">
         {loading ? (
-          <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+          <div className="h-full flex items-center justify-center bg-black">
             <div className="text-center">
-              <div className="text-lg text-gray-600 dark:text-gray-400">
-                Loading problem...
-              </div>
+              <div className="text-lg text-neutral-400">Loading problem...</div>
             </div>
           </div>
         ) : error ? (
-          <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+          <div className="h-full flex items-center justify-center bg-black">
             <div className="text-center">
-              <div className="text-lg text-red-600 dark:text-red-400">
-                Error: {error}
-              </div>
+              <div className="text-lg text-white">Error: {error}</div>
             </div>
           </div>
         ) : problemData ? (
@@ -141,17 +137,15 @@ export default function InterviewPage() {
       {/* Right Column - Editor Area */}
       <main className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header */}
-        <header className="flex-shrink-0 h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center px-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <header className="flex-shrink-0 h-14 bg-neutral-900 border-b border-neutral-800 flex items-center px-6">
+          <h2 className="text-lg font-semibold text-white">
             {problemData?.title || "Interview Practice Dashboard"}
           </h2>
           <div className="ml-auto flex items-center gap-4">
             {/* Timer */}
             <div
               className={`text-lg font-mono font-semibold ${
-                timeInSeconds < 0
-                  ? "text-red-600 dark:text-red-400"
-                  : "text-gray-900 dark:text-white"
+                timeInSeconds < 0 ? "text-white" : "text-white"
               }`}
             >
               {formatTime(timeInSeconds)}
@@ -159,7 +153,7 @@ export default function InterviewPage() {
             {/* End Mock Button */}
             <button
               onClick={() => setShowEndDialog(true)}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-medium transition-colors"
+              className="px-4 py-2 bg-white hover:bg-neutral-200 text-black rounded-md text-sm font-medium transition-colors"
             >
               End Mock
             </button>
@@ -169,7 +163,7 @@ export default function InterviewPage() {
         {/* Editor Container - fills remaining space */}
         <div className="flex-1 overflow-hidden">
           {loading ? (
-            <div className="h-full flex items-center justify-center bg-gray-900 text-white">
+            <div className="h-full flex items-center justify-center bg-black text-white">
               <div className="text-center">
                 <div className="mb-2">Loading Editor...</div>
               </div>
@@ -190,25 +184,25 @@ export default function InterviewPage() {
 
       {/* End Mock Confirmation Dialog */}
       {showEndDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+          <div className="bg-neutral-900 rounded-lg shadow-xl p-6 max-w-md w-full mx-4 border border-neutral-800">
+            <h3 className="text-xl font-semibold text-white mb-4">
               End Mock Interview?
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-neutral-300 mb-6">
               Are you sure you want to end the mock interview? Your progress
               will NOT be saved.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowEndDialog(false)}
-                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-md text-sm font-medium transition-colors"
+                className="px-4 py-2 bg-neutral-700 hover:bg-neutral-600 text-white rounded-md text-sm font-medium transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleEndMock}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-medium transition-colors"
+                className="px-4 py-2 bg-white hover:bg-neutral-200 text-black rounded-md text-sm font-medium transition-colors"
               >
                 Yes, End Mock
               </button>
