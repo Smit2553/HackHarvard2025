@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from 'next/navigation';
 import InfoPanel from "@/components/InfoPanel";
 import Editor from "@/components/Editor";
 
@@ -42,6 +43,7 @@ interface LeetCodeProblem {
  * - Connect to backend API for persistence
  */
 export default function InterviewPage() {
+  const router = useRouter();
   const [problemData, setProblemData] = useState<LeetCodeProblem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -94,9 +96,9 @@ export default function InterviewPage() {
 
   // Handle end mock confirmation
   const handleEndMock = () => {
-    // Route back to page.tsx
-    window.location.href = "/";
-
+    // Navigate to the score overview page after ending the mock interview
+    // Score page has default placeholders if no data is provided
+    router.push('/score');
     setShowEndDialog(false);
   };
 
