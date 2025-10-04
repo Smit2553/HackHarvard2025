@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useVapi } from "@/components/VapiProvider";
 import InfoPanel from "@/components/InfoPanel";
 import Editor from "@/components/Editor";
 
@@ -42,6 +44,8 @@ interface LeetCodeProblem {
  * - Connect to backend API for persistence
  */
 export default function InterviewPage() {
+  const router = useRouter();
+  const { endCall } = useVapi();
   const [problemData, setProblemData] = useState<LeetCodeProblem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -94,10 +98,14 @@ export default function InterviewPage() {
 
   // Handle end mock confirmation
   const handleEndMock = () => {
-    // Route back to page.tsx
-    window.location.href = "/";
-
+    // Terminate the Vapi call
+    endCall();
+    
+    // Close the dialog
     setShowEndDialog(false);
+    
+    // Route back to start page
+    router.push("/start");
   };
 
   return (
