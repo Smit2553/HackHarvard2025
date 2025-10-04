@@ -45,6 +45,8 @@ export default function Home() {
   const [problemData, setProblemData] = useState<LeetCodeProblem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [timeInSeconds, setTimeInSeconds] = useState(15 * 60); // 15 minutes in seconds
+  const [showEndDialog, setShowEndDialog] = useState(false);
 
   useEffect(() => {
     // Fetch problem data from the API
@@ -70,6 +72,31 @@ export default function Home() {
 
     fetchProblem();
   }, []);
+
+  // Timer effect - counts down from 15 minutes, then counts up
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeInSeconds((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Format time for display
+  const formatTime = (seconds: number) => {
+    const isNegative = seconds < 0;
+    const absSeconds = Math.abs(seconds);
+    const mins = Math.floor(absSeconds / 60);
+    const secs = absSeconds % 60;
+    const timeStr = `${mins}:${secs.toString().padStart(2, "0")}`;
+    return isNegative ? `+${timeStr}` : timeStr;
+  };
+
+  // Handle end mock confirmation
+  const handleEndMock = () => {
+    // Empty function as requested
+    setShowEndDialog(false);
+  };
 
   return (
     <div className="h-screen w-screen flex flex-col lg:flex-row overflow-hidden">
@@ -108,11 +135,24 @@ export default function Home() {
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
             {problemData?.title || "Interview Practice Dashboard"}
           </h2>
-          <div className="ml-auto flex items-center gap-2">
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              Python
-            </span>
-            {/* Add buttons here for save, run, etc. when needed */}
+          <div className="ml-auto flex items-center gap-4">
+            {/* Timer */}
+            <div
+              className={`text-lg font-mono font-semibold ${
+                timeInSeconds < 0
+                  ? "text-red-600 dark:text-red-400"
+                  : "text-gray-900 dark:text-white"
+              }`}
+            >
+              {formatTime(timeInSeconds)}
+            </div>
+            {/* End Mock Button */}
+            <button
+              onClick={() => setShowEndDialog(true)}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-medium transition-colors"
+            >
+              End Mock
+            </button>
           </div>
         </header>
 
@@ -137,6 +177,35 @@ export default function Home() {
           )}
         </div>
       </main>
+
+      {/* End Mock Confirmation Dialog */}
+      {showEndDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              End Mock Interview?
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Are you sure you want to end the mock interview? Your progress
+              will NOT be saved.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowEndDialog(false)}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-md text-sm font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleEndMock}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-medium transition-colors"
+              >
+                Yes, End Mock
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
