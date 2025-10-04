@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from vapi_endpoint import router as vapi_router
+from leetcode_endpoint import router as leetcode_router
 
 app = FastAPI()
 
@@ -15,6 +16,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(vapi_router)
+app.include_router(leetcode_router)
 
 @app.get("/")
 async def hello_world():
