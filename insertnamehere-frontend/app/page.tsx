@@ -1,17 +1,17 @@
-import InfoPanel from '@/components/InfoPanel';
-import Editor from '@/components/Editor';
+import InfoPanel from "@/components/InfoPanel";
+import Editor from "@/components/Editor";
 
 /**
  * Home page - Two-column layout with InfoPanel and Monaco Editor
- * 
+ *
  * Layout structure:
  * - Left column: Fixed-width InfoPanel (responsive: full-width on mobile, fixed on desktop)
  * - Right column: Flexible Editor area with header
- * 
+ *
  * The layout is responsive:
  * - Mobile/tablet: stacked vertically
  * - Desktop (lg+): side-by-side columns
- * 
+ *
  * To extend:
  * - Add state management for editor content
  * - Implement save/load functionality
@@ -23,15 +23,7 @@ export default function Home() {
     <div className="h-screen w-screen flex flex-col lg:flex-row overflow-hidden">
       {/* Left Column - Info Panel (fixed width on desktop) */}
       <aside className="w-full lg:w-96 lg:flex-shrink-0 h-64 lg:h-full border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-700">
-        <InfoPanel
-          title="Code Editor Dashboard"
-          userStories={[
-            'As a developer, I want to write and edit code with syntax highlighting',
-            'As a user, I want to see the project requirements and context',
-            'As a team member, I want to understand the feature specifications',
-            'As a collaborator, I want a clean interface to focus on coding',
-          ]}
-        />
+        <InfoPanel title="Interview Practice Dashboard" />
       </aside>
 
       {/* Right Column - Editor Area */}
@@ -39,7 +31,7 @@ export default function Home() {
         {/* Header */}
         <header className="flex-shrink-0 h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center px-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Code Editor
+            Interview Practice Dashboard
           </h2>
           <div className="ml-auto flex items-center gap-2">
             <span className="text-sm text-gray-500 dark:text-gray-400">

@@ -6,12 +6,12 @@ interface InfoPanelProps {
 
 /**
  * InfoPanel component - displays project info in the left column
- * 
+ *
  * This component shows:
  * - Project title
  * - Screenshot/preview (placeholder for now)
  * - User stories list
- * 
+ *
  * To customize:
  * - Replace previewImage with actual screenshot URL
  * - Update userStories array with real project requirements
@@ -19,13 +19,8 @@ interface InfoPanelProps {
  * - Style further with Tailwind utilities as needed
  */
 export default function InfoPanel({
-  title = 'Project Dashboard',
-  previewImage = '/placeholder-screenshot.png',
-  userStories = [
-    'As a developer, I want to edit code in a full-featured editor',
-    'As a user, I want to see project information at a glance',
-    'As a team member, I want to understand user requirements',
-  ],
+  title = "Project Dashboard",
+  previewImage = "/placeholder-screenshot.png",
 }: InfoPanelProps) {
   return (
     <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900 p-6 overflow-y-auto">
@@ -57,27 +52,10 @@ export default function InfoPanel({
           </div>
         </div>
       </div>
-
-      {/* User Stories Section */}
       <div className="flex-1">
         <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">
-          User Stories
+          Problem
         </h2>
-        <ul className="space-y-3">
-          {userStories.map((story, index) => (
-            <li
-              key={index}
-              className="flex items-start gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 text-xs font-bold">
-                {index + 1}
-              </span>
-              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                {story}
-              </p>
-            </li>
-          ))}
-        </ul>
       </div>
 
       {/* Footer note */}
