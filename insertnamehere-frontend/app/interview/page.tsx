@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useVapi } from "@/components/VapiProvider";
 import InfoPanel from "@/components/InfoPanel";
 import Editor from "@/components/Editor";
+import TranscriptPanel from "@/components/TranscriptPanel";
 
 // TypeScript interface for the LeetCode API response
 interface LeetCodeProblem {
@@ -51,6 +52,30 @@ export default function InterviewPage() {
   const [error, setError] = useState<string | null>(null);
   const [timeInSeconds, setTimeInSeconds] = useState(15 * 60); // 15 minutes in seconds
   const [showEndDialog, setShowEndDialog] = useState(false);
+
+  // Temporary transcript data
+  const tempTranscriptMessages = [
+    {
+      speaker: "interviewer" as const,
+      timestamp: "00:32",
+      text: "Can you explain your approach to solving this problem?",
+    },
+    {
+      speaker: "user" as const,
+      timestamp: "00:45",
+      text: "I'm thinking of using a hash map to store the values we've seen so far.",
+    },
+    {
+      speaker: "interviewer" as const,
+      timestamp: "01:12",
+      text: "That sounds like a good approach. What would be the time complexity?",
+    },
+    {
+      speaker: "user" as const,
+      timestamp: "01:28",
+      text: "It would be O(n) since we only need to iterate through the array once.",
+    },
+  ];
 
   useEffect(() => {
     // Fetch problem data from the API
@@ -134,7 +159,7 @@ export default function InterviewPage() {
         ) : null}
       </aside>
 
-      {/* Right Column - Editor Area */}
+      {/* Middle Column - Editor Area */}
       <main className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header */}
         <header className="flex-shrink-0 h-14 bg-neutral-900 border-b border-neutral-800 flex items-center px-6">
@@ -181,6 +206,11 @@ export default function InterviewPage() {
           )}
         </div>
       </main>
+
+      {/* Right Column - Transcript Panel (fixed width on desktop) */}
+      <aside className="w-full lg:w-96 lg:flex-shrink-0 h-64 lg:h-full border-t lg:border-t-0 lg:border-l border-neutral-800">
+        <TranscriptPanel messages={tempTranscriptMessages} />
+      </aside>
 
       {/* End Mock Confirmation Dialog */}
       {showEndDialog && (
