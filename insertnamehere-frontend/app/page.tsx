@@ -1,103 +1,77 @@
-import Image from "next/image";
+import InfoPanel from '@/components/InfoPanel';
+import Editor from '@/components/Editor';
 
+/**
+ * Home page - Two-column layout with InfoPanel and Monaco Editor
+ * 
+ * Layout structure:
+ * - Left column: Fixed-width InfoPanel (responsive: full-width on mobile, fixed on desktop)
+ * - Right column: Flexible Editor area with header
+ * 
+ * The layout is responsive:
+ * - Mobile/tablet: stacked vertically
+ * - Desktop (lg+): side-by-side columns
+ * 
+ * To extend:
+ * - Add state management for editor content
+ * - Implement save/load functionality
+ * - Add terminal component below editor
+ * - Connect to backend API for persistence
+ */
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
+    <div className="h-screen w-screen flex flex-col lg:flex-row overflow-hidden">
+      {/* Left Column - Info Panel (fixed width on desktop) */}
+      <aside className="w-full lg:w-96 lg:flex-shrink-0 h-64 lg:h-full border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-700">
+        <InfoPanel
+          title="Code Editor Dashboard"
+          userStories={[
+            'As a developer, I want to write and edit code with syntax highlighting',
+            'As a user, I want to see the project requirements and context',
+            'As a team member, I want to understand the feature specifications',
+            'As a collaborator, I want a clean interface to focus on coding',
+          ]}
         />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+      </aside>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {/* Right Column - Editor Area */}
+      <main className="flex-1 flex flex-col h-full overflow-hidden">
+        {/* Header */}
+        <header className="flex-shrink-0 h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center px-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Code Editor
+          </h2>
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              JavaScript
+            </span>
+            {/* Add buttons here for save, run, etc. when needed */}
+          </div>
+        </header>
+
+        {/* Editor Container - fills remaining space */}
+        <div className="flex-1 overflow-hidden">
+          <Editor
+            defaultLanguage="javascript"
+            defaultValue={`// Welcome to the Monaco Code Editor!
+// This is a fully-featured code editor powered by the same engine as VS Code.
+
+function greet(name) {
+  return \`Hello, \${name}! Welcome to your code editor.\`;
+}
+
+// Try editing this code - you'll get syntax highlighting,
+// IntelliSense, and all the features you'd expect!
+const message = greet("Developer");
+console.log(message);
+
+// TODO: Connect this editor to your backend
+// TODO: Add save functionality
+// TODO: Add terminal output below
+`}
+          />
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
