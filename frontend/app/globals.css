@@ -26,10 +26,42 @@ body {
   font-family: var(--font-geist-sans, Arial, Helvetica, sans-serif);
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-geist-sans, Arial, Helvetica, sans-serif);
 }
 
-code, pre, .mono {
-  font-family: var(--font-geist-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", "Helvetica Neue", monospace);
+code,
+pre,
+.mono {
+  font-family: var(
+    --font-geist-mono,
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    "Roboto Mono",
+    "Segoe UI Mono",
+    "Helvetica Neue",
+    monospace
+  );
+}
+
+/* Custom animations for VapiSpeakingIndicator */
+@keyframes sound-wave {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.5);
+  }
+}
+
+.animate-sound-wave {
+  animation: sound-wave 0.6s ease-in-out infinite;
 }
