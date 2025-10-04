@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual Environment
+hackharvard2025/
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test outputs
+test_output.json
+*-graph.json
+
+# Test directory (optional - comment out if you want to commit test files)
+# test_repo/
+
+# Logs
+*.log
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Jupyter Notebooks (if you add any)
+.ipynb_checkpoints/
+
+# PyCharm
+.idea/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pytest
+.pytest_cache/
