@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from vapi_endpoint import router as vapi_router
 
 app = FastAPI()
 
@@ -11,6 +12,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(vapi_router)
 
 @app.get("/")
 async def hello_world():
