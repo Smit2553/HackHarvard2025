@@ -94,7 +94,9 @@ export default function InterviewPage() {
 
   // Handle end mock confirmation
   const handleEndMock = () => {
-    // Empty function as requested
+    // Route back to page.tsx
+    window.location.href = "/";
+
     setShowEndDialog(false);
   };
 
