@@ -7,8 +7,17 @@ import {
   useCallback,
   ReactNode,
   useEffect,
+  useRef,
 } from "react";
 import Vapi from "@vapi-ai/web";
+
+interface TranscriptSegment {
+  type: "transcript" | "call-start" | "call-end";
+  role?: "user" | "assistant";
+  text?: string;
+  timestamp: string;
+  secondsSinceStart: number;
+}
 
 interface VapiContextType {
   vapi: Vapi | null;
@@ -17,6 +26,7 @@ interface VapiContextType {
   startCall: () => Promise<void>;
   endCall: () => void;
   error: string | null;
+  transcript: TranscriptSegment[];
 }
 
 const VapiContext = createContext<VapiContextType | undefined>(undefined);
@@ -26,6 +36,8 @@ export function VapiProvider({ children }: { children: ReactNode }) {
   const [isCallActive, setIsCallActive] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [transcript, setTranscript] = useState<TranscriptSegment[]>([]);
+  const callStartTimeRef = useRef<number | null>(null);
 
   // Initialize Vapi instance on mount
   useEffect(() => {
@@ -37,13 +49,43 @@ export function VapiProvider({ children }: { children: ReactNode }) {
     // Set up event listeners
     vapiInstance.on("call-start", () => {
       console.log("Call started");
+      const now = Date.now();
+      callStartTimeRef.current = now;
       setIsCallActive(true);
       setError(null);
+      setTranscript([
+        {
+          type: "call-start",
+          timestamp: new Date(now).toISOString(),
+          secondsSinceStart: 0,
+        },
+      ]);
     });
 
     vapiInstance.on("call-end", () => {
       console.log("Call ended");
+      const now = Date.now();
+      const secondsSinceStart = callStartTimeRef.current
+        ? (now - callStartTimeRef.current) / 1000
+        : 0;
+      setTranscript((prev) => {
+        const finalTranscript: TranscriptSegment[] = [
+          ...prev,
+          {
+            type: "call-end" as const,
+            timestamp: new Date(now).toISOString(),
+            secondsSinceStart,
+          },
+        ];
+        // Print the complete transcript to console
+        console.log(
+          "📝 Call Transcript:",
+          JSON.stringify(finalTranscript, null, 2),
+        );
+        return finalTranscript;
+      });
       setIsCallActive(false);
+      callStartTimeRef.current = null;
     });
 
     vapiInstance.on("error", (err) => {
@@ -60,6 +102,26 @@ export function VapiProvider({ children }: { children: ReactNode }) {
     vapiInstance.on("speech-end", () => {
       console.log("Agent stopped speaking");
       setIsSpeaking(false);
+    });
+
+    // Listen for message events to capture transcript
+    vapiInstance.on("message", (message: any) => {
+      if (message.type === "transcript" && message.transcriptType === "final") {
+        const now = Date.now();
+        const secondsSinceStart = callStartTimeRef.current
+          ? (now - callStartTimeRef.current) / 1000
+          : 0;
+
+        const segment: TranscriptSegment = {
+          type: "transcript",
+          role: message.role === "user" ? "user" : "assistant",
+          text: message.transcript,
+          timestamp: new Date(now).toISOString(),
+          secondsSinceStart,
+        };
+
+        setTranscript((prev) => [...prev, segment]);
+      }
     });
 
     // Cleanup on unmount
@@ -104,7 +166,15 @@ export function VapiProvider({ children }: { children: ReactNode }) {
 
   return (
     <VapiContext.Provider
-      value={{ vapi, isCallActive, isSpeaking, startCall, endCall, error }}
+      value={{
+        vapi,
+        isCallActive,
+        isSpeaking,
+        startCall,
+        endCall,
+        error,
+        transcript,
+      }}
     >
       {children}
     </VapiContext.Provider>
