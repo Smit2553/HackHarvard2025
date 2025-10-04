@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { VapiProvider } from "@/components/VapiProvider";
+import { ThemeProvider } from "next-themes";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Interview Practice - HackHarvard",
+  title: "Offscript - HackHarvard 2025",
   description: "AI-powered mock interview platform",
 };
 
@@ -24,12 +25,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <VapiProvider>
-          {children}
+          <ThemeProvider defaultTheme="system" attribute="class" enableSystem>
+            {children}
+          </ThemeProvider>
         </VapiProvider>
       </body>
     </html>

@@ -1,83 +1,89 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState } from "react";
 
-// Dynamic import of Monaco Editor to avoid SSR issues
-// Monaco Editor requires browser APIs that are not available during server-side rendering
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center h-full w-full bg-black text-white">
-      <div className="text-center">
-        <div className="mb-2">Loading Editor...</div>
-        <div className="text-sm text-neutral-400">
-          Monaco Editor is initializing
-        </div>
-      </div>
+    <div className="h-full w-full flex items-center justify-center">
+      <p className="text-sm text-muted-foreground">Loading editor...</p>
     </div>
   ),
 });
 
-interface EditorProps {
-  defaultValue?: string;
-  defaultLanguage?: string;
-  theme?: string;
-  onChange?: (value: string | undefined) => void;
-}
-
-/**
- * Client-side Monaco Editor component
- *
- * This component wraps the Monaco Editor and ensures it only loads on the client side.
- *
- * Usage:
- * ```tsx
- * <Editor
- *   defaultValue="// Start coding here"
- *   defaultLanguage="javascript"
- *   onChange={(value) => console.log(value)}
- * />
- * ```
- *
- * To extend functionality:
- * - Add save functionality by capturing onChange events
- * - Implement additional editor options via props
- * - Add language switching controls
- * - Integrate with terminal or execution environment
- */
 export default function Editor({
-  defaultValue = '// Start coding here\nfunction hello() {\n  console.log("Hello, World!");\n}\n',
-  defaultLanguage = "javascript",
-  theme = "vs-dark",
+  defaultValue = "",
+  language = "python",
   onChange,
-}: EditorProps) {
-  const [isError, setIsError] = useState(false);
-
+}: {
+  defaultValue?: string;
+  language?: string;
+  onChange?: (value: string | undefined) => void;
+}) {
   return (
-    <div className="h-full w-full">
-      <MonacoEditor
-        height="100%"
-        defaultLanguage={defaultLanguage}
-        defaultValue={defaultValue}
-        theme={theme}
-        onChange={onChange}
-        onMount={(editor, monaco) => {
-          console.log("Monaco Editor mounted successfully");
-        }}
-        beforeMount={(monaco) => {
-          console.log("Monaco Editor preparing to mount");
-        }}
-        options={{
-          minimap: { enabled: true },
-          fontSize: 14,
-          lineNumbers: "on",
-          scrollBeyondLastLine: false,
-          automaticLayout: true, // Auto-resize on container size changes
-          padding: { top: 16, bottom: 16 },
-          wordWrap: "on",
-        }}
-      />
-    </div>
+    <MonacoEditor
+      height="100%"
+      language={language}
+      defaultValue={defaultValue}
+      onChange={onChange}
+      options={{
+        minimap: { enabled: false },
+        fontSize: 13,
+        lineHeight: 20,
+        padding: { top: 16, bottom: 16 },
+        scrollBeyondLastLine: false,
+        renderLineHighlight: "none",
+        fontFamily: "SF Mono, Monaco, Consolas, monospace",
+        scrollbar: {
+          verticalScrollbarSize: 8,
+          horizontalScrollbarSize: 8,
+        },
+      }}
+      theme="vs-light"
+      onMount={(editor, monaco) => {
+        monaco.editor.defineTheme("offscript-light", {
+          base: "vs",
+          inherit: true,
+          rules: [
+            { token: "comment", foreground: "6B7280" },
+            { token: "keyword", foreground: "8B5CF6" },
+            { token: "string", foreground: "059669" },
+          ],
+          colors: {
+            "editor.background": "#FFFFFF",
+            "editor.lineHighlightBackground": "#00000000",
+            "editorLineNumber.foreground": "#9CA3AF",
+          },
+        });
+
+        monaco.editor.defineTheme("offscript-dark", {
+          base: "vs-dark",
+          inherit: true,
+          rules: [
+            { token: "comment", foreground: "6B7280" },
+            { token: "keyword", foreground: "A78BFA" },
+            { token: "string", foreground: "34D399" },
+          ],
+          colors: {
+            "editor.background": "#0A0A0A",
+            "editor.lineHighlightBackground": "#00000000",
+            "editorLineNumber.foreground": "#4B5563",
+          },
+        });
+
+        const updateTheme = () => {
+          const isDark = document.documentElement.classList.contains("dark");
+          monaco.editor.setTheme(isDark ? "offscript-dark" : "offscript-light");
+        };
+
+        updateTheme();
+
+        const observer = new MutationObserver(updateTheme);
+        observer.observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ["class"],
+        });
+      }}
+    />
   );
 }

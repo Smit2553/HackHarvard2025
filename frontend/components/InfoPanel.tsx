@@ -9,171 +9,93 @@ interface InfoPanelProps {
     output: string;
     explanation: string;
   };
-  isCollapsed?: boolean;
-  onToggleCollapse?: () => void;
+  loading?: boolean;
+  error?: string | null;
 }
 
-/**
- * InfoPanel component - displays project info in the left column
- *
- * This component shows:
- * - Problem title and type
- * - Problem description
- * - Example test case with input/output in code blocks
- *
- * To customize:
- * - Style further with Tailwind utilities as needed
- */
 export default function InfoPanel({
-  title = "Project Dashboard",
-  type = "",
-  description = "",
+  title,
+  type,
+  description,
   exampleTestCase,
-  isCollapsed = false,
-  onToggleCollapse,
+  loading = false,
+  error = null,
 }: InfoPanelProps) {
-  // If collapsed, show a vertical tab button
-  if (isCollapsed && onToggleCollapse) {
+  if (loading) {
     return (
-      <div className="h-full flex items-center justify-center bg-black">
-        <button
-          onClick={onToggleCollapse}
-          className="h-32 w-full flex flex-col items-center justify-center gap-2 text-neutral-400 hover:text-white hover:bg-neutral-900 transition-all group"
-          aria-label="Expand panel"
-        >
-          <svg
-            className="w-5 h-5 transform rotate-0"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 5l7 7-7 7M5 5l7 7-7 7"
-            />
-          </svg>
-          <span
-            className="text-xs writing-mode-vertical transform -rotate-180"
-            style={{ writingMode: "vertical-rl" }}
-          >
-            Problem
-          </span>
-        </button>
+      <div className="flex-1 flex items-center justify-center">
+        <p className="text-sm text-muted-foreground">Loading problem...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <p className="text-sm text-destructive">Error: {error}</p>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col bg-black p-6 overflow-y-auto">
-      {/* Title Section */}
-      <div className="mb-6 flex items-start justify-between">
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold text-white mb-2">{title}</h1>
-          {type && (
-            <div className="inline-block px-3 py-1 bg-neutral-800 text-neutral-200 text-sm font-medium rounded-full border border-neutral-700">
-              {type}
-            </div>
-          )}
-          <div className="h-1 w-20 bg-white rounded mt-3"></div>
-        </div>
-        {onToggleCollapse && (
-          <button
-            onClick={onToggleCollapse}
-            className="text-neutral-400 hover:text-white transition-colors p-1 ml-2"
-            aria-label={isCollapsed ? "Expand panel" : "Collapse panel"}
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              {isCollapsed ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 5l7 7-7 7M5 5l7 7-7 7"
-                />
-              ) : (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-                />
+    <div className="flex-1 overflow-y-auto">
+      <div className="p-6 space-y-6">
+        {title && (
+          <div>
+            <h1 className="text-2xl font-semibold mb-2">{title}</h1>
+            {type && (
+              <span className="inline-flex px-2 py-0.5 text-xs rounded-md bg-muted text-muted-foreground">
+                {type}
+              </span>
+            )}
+          </div>
+        )}
+
+        {description && (
+          <div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {description}
+            </p>
+          </div>
+        )}
+
+        {exampleTestCase && (
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium">Example:</h3>
+
+            <div className="space-y-3">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1.5">
+                  Input:
+                </p>
+                <div className="p-3 rounded-md bg-muted/50 border border-border/50">
+                  <code className="text-xs">{exampleTestCase.input}</code>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1.5">
+                  Output:
+                </p>
+                <div className="p-3 rounded-md bg-muted/50 border border-border/50">
+                  <code className="text-xs">{exampleTestCase.output}</code>
+                </div>
+              </div>
+
+              {exampleTestCase.explanation && (
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1.5">
+                    Explanation:
+                  </p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {exampleTestCase.explanation}
+                  </p>
+                </div>
               )}
-            </svg>
-          </button>
+            </div>
+          </div>
         )}
       </div>
-
-      {/* Description Section */}
-      {!isCollapsed && description && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-neutral-200 mb-3">
-            Description
-          </h2>
-          <div className="bg-neutral-900 rounded-lg border border-neutral-800 p-4">
-            <p className="text-neutral-300 leading-relaxed">{description}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Example Test Case Section */}
-      {!isCollapsed && exampleTestCase && (
-        <div className="flex-1">
-          <h2 className="text-lg font-semibold text-neutral-200 mb-3">
-            Example
-          </h2>
-          <div className="bg-neutral-900 rounded-lg border border-neutral-800 p-4 space-y-4">
-            {/* Input */}
-            <div>
-              <h3 className="text-sm font-semibold text-neutral-300 mb-2">
-                Input:
-              </h3>
-              <pre className="bg-black rounded p-3 overflow-x-auto text-sm border border-neutral-800">
-                <code className="text-neutral-200 font-mono">
-                  {exampleTestCase.input}
-                </code>
-              </pre>
-            </div>
-
-            {/* Output */}
-            <div>
-              <h3 className="text-sm font-semibold text-neutral-300 mb-2">
-                Output:
-              </h3>
-              <pre className="bg-black rounded p-3 overflow-x-auto text-sm border border-neutral-800">
-                <code className="text-neutral-200 font-mono">
-                  {exampleTestCase.output}
-                </code>
-              </pre>
-            </div>
-
-            {/* Explanation */}
-            <div>
-              <h3 className="text-sm font-semibold text-neutral-300 mb-2">
-                Explanation:
-              </h3>
-              <p className="text-neutral-300 text-sm leading-relaxed">
-                {exampleTestCase.explanation}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Footer note */}
-      {!isCollapsed && (
-        <div className="mt-6 pt-4 border-t border-neutral-800">
-          <p className="text-xs text-neutral-500 text-center">
-            💡 Tip: This panel is fixed width on larger screens
-          </p>
-        </div>
-      )}
     </div>
   );
 }
