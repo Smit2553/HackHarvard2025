@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
+    "@vapi-ai/web": "^2.4.0",
     "monaco-editor": "^0.53.0",
     "next": "15.5.4",
     "react": "19.1.0",
