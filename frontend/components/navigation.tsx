@@ -107,7 +107,7 @@ export function Navigation() {
 
   const navigationItems = [
     { name: "Problems", path: "/problems" },
-    { name: "Companies", path: "/practice/company" },
+    { name: "Companies", path: "/practice/companies" },
     { name: "Pricing", path: "/pricing" },
   ];
 
@@ -141,7 +141,7 @@ export function Navigation() {
           </button>
           <button
             type="button"
-            onClick={() => router.push("/practice/company")}
+            onClick={() => router.push("/practice/companies")}
             className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             Companies
@@ -198,7 +198,7 @@ export function Navigation() {
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push("/settings")}>
+              <DropdownMenuItem>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
