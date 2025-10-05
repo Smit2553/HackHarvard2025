@@ -3,6 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from vapi_endpoint import router as vapi_router
 from leetcode_endpoint import router as leetcode_router
 from transcript_endpoint import router as transcript_router
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = FastAPI()
 

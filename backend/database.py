@@ -22,6 +22,8 @@ def init_db():
             user_messages INTEGER,
             assistant_messages INTEGER,
             metadata TEXT,
+            ratings TEXT,
+            rated_at TEXT,
             created_at TEXT NOT NULL
         )
     """)
@@ -90,7 +92,7 @@ def get_transcript(transcript_id: int) -> Optional[Dict[str, Any]]:
     
     cursor.execute("""
         SELECT id, transcript_data, call_duration, user_messages, assistant_messages, 
-               metadata, created_at
+               metadata, ratings, rated_at, created_at
         FROM transcripts
         WHERE id = ?
     """, (transcript_id,))
@@ -108,7 +110,9 @@ def get_transcript(transcript_id: int) -> Optional[Dict[str, Any]]:
         "user_messages": row[3],
         "assistant_messages": row[4],
         "metadata": json.loads(row[5]) if row[5] else None,
-        "created_at": row[6]
+        "ratings": json.loads(row[6]) if row[6] else None,
+        "rated_at": row[7],
+        "created_at": row[8]
     }
 
 
@@ -124,7 +128,7 @@ def get_all_transcripts() -> List[Dict[str, Any]]:
     
     cursor.execute("""
         SELECT id, transcript_data, call_duration, user_messages, assistant_messages, 
-               metadata, created_at
+               metadata, ratings, rated_at, created_at
         FROM transcripts
         ORDER BY id DESC
     """)
@@ -141,7 +145,9 @@ def get_all_transcripts() -> List[Dict[str, Any]]:
             "user_messages": row[3],
             "assistant_messages": row[4],
             "metadata": json.loads(row[5]) if row[5] else None,
-            "created_at": row[6]
+            "ratings": json.loads(row[6]) if row[6] else None,
+            "rated_at": row[7],
+            "created_at": row[8]
         })
     
     return transcripts
@@ -159,7 +165,7 @@ def get_latest_transcript() -> Optional[Dict[str, Any]]:
     
     cursor.execute("""
         SELECT id, transcript_data, call_duration, user_messages, assistant_messages, 
-               metadata, created_at
+               metadata, ratings, rated_at, created_at
         FROM transcripts
         ORDER BY id DESC
         LIMIT 1
@@ -178,7 +184,9 @@ def get_latest_transcript() -> Optional[Dict[str, Any]]:
         "user_messages": row[3],
         "assistant_messages": row[4],
         "metadata": json.loads(row[5]) if row[5] else None,
-        "created_at": row[6]
+        "ratings": json.loads(row[6]) if row[6] else None,
+        "rated_at": row[7],
+        "created_at": row[8]
     }
 
 
@@ -202,6 +210,39 @@ def delete_transcript(transcript_id: int) -> bool:
     conn.close()
     
     return deleted
+
+
+def save_ratings(transcript_id: int, ratings: Dict[str, Any]) -> bool:
+    """
+    Save ratings for a transcript.
+    
+    Args:
+        transcript_id: The ID of the transcript to rate
+        ratings: Dictionary containing the rating data
+    
+    Returns:
+        True if successful, False if transcript not found
+    """
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    ratings_json = json.dumps(ratings)
+    rated_at = datetime.now().isoformat()
+    
+    cursor.execute("""
+        UPDATE transcripts
+        SET ratings = ?, rated_at = ?
+        WHERE id = ?
+    """, (ratings_json, rated_at, transcript_id))
+    
+    updated = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    
+    if updated:
+        print(f"💾 Saved ratings for transcript ID: {transcript_id}")
+    
+    return updated
 
 
 # Initialize database on import

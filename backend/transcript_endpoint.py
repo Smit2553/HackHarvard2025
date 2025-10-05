@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import List, Optional, Literal
 from datetime import datetime
 import database
+from gemini_rating_service import get_rating_service, TranscriptRating
 
 router = APIRouter()
 
@@ -106,6 +107,37 @@ async def receive_transcript(request: TranscriptRequest):
             metadata=request.metadata
         )
         
+        # Automatically rate the transcript with Gemini AI
+        ratings_dict = None
+        try:
+            print(f"\n{'='*60}")
+            print(f"🤖 Auto-rating transcript ID: {transcript_id}")
+            print(f"   Duration: {call_duration:.1f}s")
+            print(f"   Messages: {user_messages} user, {assistant_messages} assistant")
+            
+            rating_service = get_rating_service()
+            print(f"   Sending to Gemini API for rating...")
+            
+            rating = rating_service.rate_transcript(
+                transcript=transcript_dict,
+                metadata=request.metadata
+            )
+            
+            # Save ratings to database
+            ratings_dict = rating.dict()
+            database.save_ratings(transcript_id, ratings_dict)
+            
+            print(f"   ✅ Auto-rating complete and saved!")
+            print(f"   Communication: {rating.communication_grade}")
+            print(f"   Problem Solving: {rating.problem_solving_grade}")
+            print(f"   Implementation: {rating.implementation_grade}")
+            print(f"{'='*60}\n")
+            
+        except Exception as rating_error:
+            print(f"⚠️  Warning: Failed to auto-rate transcript: {str(rating_error)}")
+            print(f"   Transcript saved but ratings not available")
+            # Continue even if rating fails - transcript is still saved
+        
         response_data = {
             "status": "success",
             "message": "Transcript received and saved to database",
@@ -115,7 +147,9 @@ async def receive_transcript(request: TranscriptRequest):
             "transcript_summary": {
                 "user_messages": user_messages,
                 "assistant_messages": assistant_messages
-            }
+            },
+            "ratings": ratings_dict,
+            "auto_rated": ratings_dict is not None
         }
         
         return response_data
