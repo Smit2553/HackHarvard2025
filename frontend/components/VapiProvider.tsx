@@ -31,9 +31,13 @@ interface VapiContextType {
   vapi: Vapi | null;
   isCallActive: boolean;
   isSpeaking: boolean;
-  startCall: () => Promise<void>;
-  endCall: () => void;
-  sendCodeContext: (code: string, language: string, problem: string) => void;
+  startCall: (metadata?: Record<string, unknown>) => Promise<void>;
+  endCall: () => Promise<void>;
+  sendCodeContext: (
+    code: string,
+    language: string,
+    problemTitle: string,
+  ) => void;
   error: string | null;
   transcript: TranscriptSegment[];
 }
@@ -47,6 +51,43 @@ export function VapiProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [transcript, setTranscript] = useState<TranscriptSegment[]>([]);
   const callStartTimeRef = useRef<number | null>(null);
+  const callMetadataRef = useRef<Record<string, unknown> | undefined>(
+    undefined,
+  );
+
+  // Function to upload transcript to backend
+  const uploadTranscript = async (
+    transcriptData: TranscriptSegment[],
+    metadata?: Record<string, unknown>,
+  ) => {
+    try {
+      console.log("Uploading transcript to backend...");
+      const response = await fetch(
+        "https://harvardapi.codestacx.com/api/transcript",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            transcript: transcriptData,
+            metadata: metadata || {},
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to upload transcript: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log("✅ Transcript uploaded successfully:", result);
+      return result;
+    } catch (err) {
+      console.error("❌ Error uploading transcript:", err);
+      throw err;
+    }
+  };
 
   // Initialize Vapi instance on mount
   useEffect(() => {
@@ -91,10 +132,19 @@ export function VapiProvider({ children }: { children: ReactNode }) {
           "📝 Call Transcript:",
           JSON.stringify(finalTranscript, null, 2),
         );
+
+        // Upload transcript to backend with duration in metadata
+        const metadataWithDuration = {
+          ...callMetadataRef.current,
+          duration: secondsSinceStart,
+        };
+        uploadTranscript(finalTranscript, metadataWithDuration);
+
         return finalTranscript;
       });
       setIsCallActive(false);
       callStartTimeRef.current = null;
+      callMetadataRef.current = undefined;
     });
 
     vapiInstance.on("error", (err) => {
@@ -139,35 +189,43 @@ export function VapiProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const startCall = useCallback(async () => {
-    if (!vapi) {
-      setError("Vapi is not initialized");
-      return;
-    }
+  const startCall = useCallback(
+    async (metadata?: Record<string, unknown>) => {
+      if (!vapi) {
+        setError("Vapi is not initialized");
+        return;
+      }
 
-    const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
-    if (!assistantId) {
-      setError("Assistant ID not configured");
-      return;
-    }
+      const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
+      if (!assistantId) {
+        setError("Assistant ID not configured");
+        return;
+      }
 
-    try {
-      setError(null);
-      await vapi.start(assistantId);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to start call";
-      setError(errorMessage);
-      console.error("Failed to start call:", err);
-    }
-  }, [vapi]);
+      try {
+        setError(null);
+        // Store metadata for later use when uploading transcript
+        callMetadataRef.current = metadata;
+        await vapi.start(assistantId);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to start call";
+        setError(errorMessage);
+        console.error("Failed to start call:", err);
+      }
+    },
+    [vapi],
+  );
 
-  const endCall = useCallback(() => {
+  const endCall = useCallback(async () => {
     if (!vapi) return;
 
     try {
       vapi.stop();
       setIsCallActive(false);
+
+      // Wait a moment for the call-end event to process and transcript to finalize
+      await new Promise((resolve) => setTimeout(resolve, 500));
     } catch (err) {
       console.error("Failed to end call:", err);
     }
@@ -178,46 +236,49 @@ export function VapiProvider({ children }: { children: ReactNode }) {
    * Metadata is accessible to AI but doesn't appear in chat transcript
    * Includes session ID to isolate users in multi-user environments
    */
-  const sendCodeContext = useCallback((code: string, language: string, problem: string) => {
-    if (!vapi || !isCallActive) {
-      console.log('⚠️  Cannot send code: Call not active');
-      return;
-    }
+  const sendCodeContext = useCallback(
+    (code: string, language: string, problem: string) => {
+      if (!vapi || !isCallActive) {
+        console.log("⚠️  Cannot send code: Call not active");
+        return;
+      }
 
-    try {
-      const sessionId = getSessionId(); // Get unique session ID for this browser tab
+      try {
+        const sessionId = getSessionId(); // Get unique session ID for this browser tab
       
-      console.log('📤 Sending code context via metadata');
-      console.log(`   Session: ${sessionId}`);
+      console.log("📤 Sending code context via metadata");
+        console.log(`   Session: ${sessionId}`);
       console.log(`   Problem: ${problem}`);
-      console.log(`   Language: ${language}`);
-      console.log(`   Code length: ${code.length} chars`);
+        console.log(`   Language: ${language}`);
+        console.log(`   Code length: ${code.length} chars`);
 
-      // Use metadata approach - keeps code completely separate from conversation
-      // TypeScript doesn't recognize metadata field, so we cast to any
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (vapi as any).send({
-        type: "add-message",
-        message: {
-          role: "system",
-          content: "Code context updated"
-        },
-        metadata: {
+        // Use metadata approach - keeps code completely separate from conversation
+        // TypeScript doesn't recognize metadata field, so we cast to any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (vapi as any).send({
+          type: "add-message",
+          message: {
+            role: "system",
+            content: "Code context updated",
+          },
+          metadata: {
           sessionId: sessionId,
-          type: "code_update",
-          problem: problem,
-          language: language,
-          code: code,
-          lines: code.split('\n').length,
-          timestamp: new Date().toISOString()
-        }
-      });
+            type: "code_update",
+            problem: problem,
+            language: language,
+            code: code,
+            lines: code.split("\n").length,
+            timestamp: new Date().toISOString(),
+          },
+        });
 
-      console.log('✅ Code context sent via metadata');
-    } catch (error) {
-      console.error('❌ Failed to send code context:', error);
-    }
-  }, [vapi, isCallActive]);
+        console.log("✅ Code context sent via metadata");
+      } catch (error) {
+        console.error("❌ Failed to send code context:", error);
+      }
+    },
+    [vapi, isCallActive],
+  );
 
   return (
     <VapiContext.Provider
