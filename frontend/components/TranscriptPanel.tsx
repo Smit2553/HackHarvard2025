@@ -14,9 +14,12 @@ export default function TranscriptPanel({
   messages = [],
 }: TranscriptPanelProps) {
   return (
-    <div className="flex-1 relative">
-      {/* Fade overlay */}
+    <div className="flex-1 relative overflow-hidden">
+      {/* Top fade overlay */}
       <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
+
+      {/* Bottom fade overlay */}
+      <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
 
       <div className="h-full overflow-y-auto px-6 py-6 space-y-4">
         {messages.map((message, idx) => (
