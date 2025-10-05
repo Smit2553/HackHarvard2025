@@ -10,7 +10,7 @@ export default function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="/problems"
+                  href="/"
                   className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Problems
@@ -18,7 +18,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/companies"
+                  href="/practice/companies"
                   className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Companies

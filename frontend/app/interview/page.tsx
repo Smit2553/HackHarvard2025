@@ -24,7 +24,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Clock, Sun, Moon, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Clock,
+  Sun,
+  Moon,
+  ChevronLeft,
+  ChevronRight,
+  Monitor,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 
 interface LeetCodeProblem {
@@ -71,7 +78,7 @@ export default function InterviewPage() {
   const [problemData, setProblemData] = useState<LeetCodeProblem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [timeInSeconds, setTimeInSeconds] = useState(15 * 60);
+  const [timeInSeconds, setTimeInSeconds] = useState(45 * 60);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -80,6 +87,8 @@ export default function InterviewPage() {
   const [isEndingInterview, setIsEndingInterview] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
   const callInitializedRef = useRef(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
 
   // Code editor state
   const [editorCode, setEditorCode] = useState<string>("");
@@ -102,11 +111,34 @@ export default function InterviewPage() {
       text: segment.text || "",
     }));
 
+  // Check if device is mobile
   useEffect(() => {
+    const checkMobile = () => {
+      const width = window.innerWidth;
+      const userAgent = navigator.userAgent.toLowerCase();
+      const isMobileDevice =
+        /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(
+          userAgent,
+        );
+      const isSmallScreen = width < 1024; // Less than lg breakpoint
+
+      setIsMobile(isMobileDevice || isSmallScreen);
+      setIsChecking(false);
+    };
+
+    checkMobile();
     setMounted(true);
+
+    // Add resize listener to detect if user resizes window
+    const handleResize = () => checkMobile();
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
+    if (isMobile) return; // Don't fetch if on mobile
+
     const fetchProblem = async () => {
       try {
         setLoading(true);
@@ -128,14 +160,14 @@ export default function InterviewPage() {
     };
 
     fetchProblem();
-  }, []);
+  }, [isMobile]);
 
   // Effect: Send initial starter code when call starts
   useEffect(() => {
     if (isCallActive && problemData && !hasInitialCodeBeenSent.current) {
       // Wait 1 second for call to fully establish
       setTimeout(() => {
-        console.log('📤 Sending initial starter code');
+        console.log("📤 Sending initial starter code");
         sendCodeContext(problemData.starter_code, language, problemData.title);
         lastSentCodeRef.current = problemData.starter_code;
         hasInitialCodeBeenSent.current = true;
@@ -146,19 +178,28 @@ export default function InterviewPage() {
   // Effect: Send code updates when user stops typing (debounced)
   useEffect(() => {
     if (!isCallActive || !problemData || !debouncedCode) return;
-    
+
     // Don't send if assistant is speaking or code hasn't changed
     if (isSpeaking || debouncedCode === lastSentCodeRef.current) {
       return;
     }
 
-    console.log('📤 Sending code update (typing paused)');
+    console.log("📤 Sending code update (typing paused)");
     sendCodeContext(debouncedCode, language, problemData.title);
     lastSentCodeRef.current = debouncedCode;
-  }, [debouncedCode, isCallActive, isSpeaking, problemData, language, sendCodeContext]);
+  }, [
+    debouncedCode,
+    isCallActive,
+    isSpeaking,
+    problemData,
+    language,
+    sendCodeContext,
+  ]);
 
   // Start Vapi call when component mounts
   useEffect(() => {
+    if (isMobile) return; // Don't start call if on mobile
+
     const initCall = async () => {
       if (callInitializedRef.current) return;
       if (!problemData) return;
@@ -183,14 +224,16 @@ export default function InterviewPage() {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [problemData]);
+  }, [problemData, isMobile]);
 
   useEffect(() => {
+    if (isMobile) return; // Don't run timer if on mobile
+
     const timer = setInterval(() => {
       setTimeInSeconds((prev) => prev - 1);
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isMobile]);
 
   const formatTime = (seconds: number) => {
     const isNegative = seconds < 0;
@@ -200,9 +243,6 @@ export default function InterviewPage() {
     return `${isNegative ? "+" : ""}${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  /**
-   * Handle editor code changes
-   */
   const handleCodeChange = (value: string | undefined) => {
     const currentCode = value || "";
     setEditorCode(currentCode);
@@ -235,6 +275,52 @@ export default function InterviewPage() {
     setShowEndConfirmation(false);
   };
 
+  // Show loading state while checking if mobile
+  if (isChecking) {
+    return (
+      <div className="h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
+  // Mobile warning screen
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="max-w-md text-center space-y-6">
+          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
+            <Monitor className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-2">
+            <h1 className="text-2xl font-semibold">Desktop Required</h1>
+            <p className="text-muted-foreground">
+              The interview practice environment requires a desktop or laptop
+              computer with a larger screen.
+            </p>
+          </div>
+
+          <div className="space-y-4 pt-4">
+            <p className="text-sm text-muted-foreground">
+              Please access this page from a computer to practice your coding
+              interviews with voice.
+            </p>
+
+            <Button
+              onClick={() => router.push("/")}
+              size="lg"
+              className="w-full sm:w-auto"
+            >
+              Back to Home
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Regular desktop interface
   return (
     <div className="h-screen bg-background flex overflow-hidden">
       <div className="flex w-full">

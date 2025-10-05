@@ -106,7 +106,7 @@ export function Navigation() {
   };
 
   const navigationItems = [
-    { name: "Problems", path: "/problems" },
+    { name: "Problems", path: "/" },
     { name: "Companies", path: "/practice/companies" },
     { name: "Pricing", path: "/pricing" },
   ];
@@ -292,7 +292,7 @@ export function Navigation() {
                     <button
                       type="button"
                       className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors text-left w-full px-3 py-2 rounded-md hover:bg-muted/50"
-                      onClick={() => handleNavigation("/settings")}
+                      onClick={() => handleNavigation("/")} // Placeholder for settings page
                     >
                       Settings
                     </button>
