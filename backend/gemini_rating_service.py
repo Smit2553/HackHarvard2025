@@ -35,7 +35,7 @@ class TranscriptRating(BaseModel):
     implementation_feedback: str = Field(description="Detailed feedback on implementation performance")
     
     overall_comments: str = Field(description="Overall assessment and key takeaways")
-    areas_for_improvement: List[str] = Field(description="List of 2-3 specific areas to improve")
+    strengths: List[str] = Field(description="List of 2-3 key strengths demonstrated")
 
 
 class GeminiRatingService:
@@ -143,7 +143,7 @@ For each category, provide:
 
 Also provide:
 - Overall comments summarizing the interview
-- 2-3 specific areas for improvement
+- 2-3 key strengths demonstrated
 
 Be constructive but honest in your assessment. Focus on specific examples from the transcript."""
 
