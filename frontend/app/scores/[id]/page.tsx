@@ -25,6 +25,17 @@ interface TranscriptSegment {
   secondsSinceStart: number;
 }
 
+interface Rating {
+  communication_grade: string;
+  communication_feedback: string;
+  problem_solving_grade: string;
+  problem_solving_feedback: string;
+  implementation_grade: string;
+  implementation_feedback: string;
+  overall_comments: string;
+  strengths: string[];
+}
+
 interface Transcript {
   id: number;
   transcript: TranscriptSegment[];
@@ -33,46 +44,31 @@ interface Transcript {
   assistant_messages: number;
   metadata: Record<string, unknown>;
   created_at: string;
+  ratings?: Rating | null;
 }
 
-const defaultScores = {
-  communication: 82,
-  problemSolving: 75,
-  implementation: 90,
-};
-
-const defaultImprovements = [
-  {
-    title: "Explain before coding",
-    description:
-      "Take 30-60 seconds to outline your approach before writing code. This helps the interviewer follow your logic.",
-    priority: "high",
-  },
-  {
-    title: "Think aloud consistently",
-    description:
-      "When you go quiet for more than 30 seconds, the interviewer can't assess your problem-solving skills.",
-    priority: "medium",
-  },
-  {
-    title: "Discuss complexity",
-    description:
-      "Always mention time and space complexity after implementing your solution.",
-    priority: "medium",
-  },
-];
-
-const highlights = {
-  positive: [
-    "Clear explanation of hash map approach",
-    "Correctly identified O(n) time complexity",
-    "Good edge case consideration",
-  ],
-  negative: [
-    "Long silence during implementation (1:45)",
-    "Forgot to handle empty array case initially",
-    "Didn't optimize for space complexity",
-  ],
+// Convert letter grade to numeric score with randomized range
+const gradeToScore = (grade: string): number => {
+  const gradeRanges: Record<string, [number, number]> = {
+    "A+": [96, 100],
+    A: [91, 95],
+    "A-": [88, 90],
+    "B+": [85, 87],
+    B: [81, 84],
+    "B-": [78, 80],
+    "C+": [75, 77],
+    C: [71, 74],
+    "C-": [68, 70],
+    D: [60, 67],
+    F: [40, 59],
+  };
+  
+  const range = gradeRanges[grade];
+  if (!range) return 75; // Default to 75 if grade not recognized
+  
+  // Generate random number within the range
+  const [min, max] = range;
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
 export default function ScoreOverviewPage() {
@@ -83,9 +79,6 @@ export default function ScoreOverviewPage() {
   const [transcript, setTranscript] = useState<Transcript | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const scores = defaultScores;
-  const improvements = defaultImprovements;
 
   useEffect(() => {
     const fetchTranscript = async () => {
@@ -112,6 +105,43 @@ export default function ScoreOverviewPage() {
 
     fetchTranscript();
   }, [transcriptId]);
+
+  // Extract scores from ratings or use defaults
+  const scores = transcript?.ratings
+    ? {
+        communication: gradeToScore(transcript.ratings.communication_grade),
+        problemSolving: gradeToScore(transcript.ratings.problem_solving_grade),
+        implementation: gradeToScore(transcript.ratings.implementation_grade),
+      }
+    : {
+        communication: 75,
+        problemSolving: 75,
+        implementation: 75,
+      };
+
+  // Extract strengths from ratings
+  const strengths = transcript?.ratings?.strengths || [];
+  
+  // Generate improvement suggestions from feedback
+  const improvements = transcript?.ratings
+    ? [
+        {
+          title: "Communication",
+          description: transcript.ratings.communication_feedback,
+          priority: scores.communication < 80 ? "high" : "medium",
+        },
+        {
+          title: "Problem Solving",
+          description: transcript.ratings.problem_solving_feedback,
+          priority: scores.problemSolving < 80 ? "high" : "medium",
+        },
+        {
+          title: "Implementation",
+          description: transcript.ratings.implementation_feedback,
+          priority: scores.implementation < 80 ? "high" : "medium",
+        },
+      ]
+    : [];
 
   const average = Math.round(
     (scores.communication + scores.problemSolving + scores.implementation) / 3,
@@ -296,14 +326,20 @@ export default function ScoreOverviewPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-3">
-                    {highlights.positive.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-600 dark:bg-green-400 mt-2 flex-shrink-0" />
-                        <span className="text-sm">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {strengths.length > 0 ? (
+                    <ul className="space-y-3">
+                      {strengths.map((item, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-green-600 dark:bg-green-400 mt-2 flex-shrink-0" />
+                          <span className="text-sm">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Complete an interview to see your strengths
+                    </p>
+                  )}
                 </CardContent>
               </Card>
 
@@ -311,18 +347,17 @@ export default function ScoreOverviewPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-base">
                     <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                    Areas to improve
+                    Overall Feedback
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-3">
-                    {highlights.negative.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-orange-600 dark:bg-orange-400 mt-2 flex-shrink-0" />
-                        <span className="text-sm">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {transcript?.ratings?.overall_comments ? (
+                    <p className="text-sm">{transcript.ratings.overall_comments}</p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Complete an interview to receive detailed feedback
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -378,46 +413,56 @@ export default function ScoreOverviewPage() {
 
           {/* Next Steps */}
           <section className="mb-20">
-            <h2 className="text-2xl font-semibold mb-8">Next Steps</h2>
-            <div className="space-y-4">
-              {improvements.map((improvement, i) => (
-                <Card
-                  key={i}
-                  className={
-                    improvement.priority === "high"
-                      ? "border-orange-500/20"
-                      : ""
-                  }
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div
-                        className={`p-2 rounded-lg ${
-                          improvement.priority === "high"
-                            ? "bg-orange-500/10"
-                            : "bg-muted"
-                        }`}
-                      >
-                        <Target className="w-4 h-4" />
+            <h2 className="text-2xl font-semibold mb-8">Detailed Feedback</h2>
+            {improvements.length > 0 ? (
+              <div className="space-y-4">
+                {improvements.map((improvement, i) => (
+                  <Card
+                    key={i}
+                    className={
+                      improvement.priority === "high"
+                        ? "border-orange-500/20"
+                        : ""
+                    }
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
+                        <div
+                          className={`p-2 rounded-lg ${
+                            improvement.priority === "high"
+                              ? "bg-orange-500/10"
+                              : "bg-muted"
+                          }`}
+                        >
+                          <Target className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-medium mb-2">
+                            {improvement.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {improvement.description}
+                          </p>
+                        </div>
+                        {improvement.priority === "high" && (
+                          <span className="text-xs px-2 py-1 rounded-md bg-orange-500/10 text-orange-600 dark:text-orange-400">
+                            High priority
+                          </span>
+                        )}
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium mb-2">
-                          {improvement.title}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {improvement.description}
-                        </p>
-                      </div>
-                      {improvement.priority === "high" && (
-                        <span className="text-xs px-2 py-1 rounded-md bg-orange-500/10 text-orange-600 dark:text-orange-400">
-                          High priority
-                        </span>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <p className="text-muted-foreground">
+                    Complete an interview to receive personalized feedback
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </section>
 
           {/* Action Buttons */}
