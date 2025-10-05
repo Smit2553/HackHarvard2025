@@ -19,6 +19,13 @@ interface TranscriptSegment {
   secondsSinceStart: number;
 }
 
+interface VapiMessage {
+  type: string;
+  transcriptType?: string;
+  role?: string;
+  transcript?: string;
+}
+
 interface VapiContextType {
   vapi: Vapi | null;
   isCallActive: boolean;
@@ -105,7 +112,7 @@ export function VapiProvider({ children }: { children: ReactNode }) {
     });
 
     // Listen for message events to capture transcript
-    vapiInstance.on("message", (message: any) => {
+    vapiInstance.on("message", (message: VapiMessage) => {
       if (message.type === "transcript" && message.transcriptType === "final") {
         const now = Date.now();
         const secondsSinceStart = callStartTimeRef.current
