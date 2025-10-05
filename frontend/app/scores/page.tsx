@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Target,
+  Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -69,162 +70,11 @@ const gradeToScore = (grade: string): number => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
-const dummyTranscript: Transcript = {
-  id: 0,
-  transcript: [
-    {
-      type: "transcript",
-      role: "assistant",
-      text: "Can you walk me through your approach to this problem?",
-      timestamp: "00:32",
-      secondsSinceStart: 32,
-    },
-    {
-      type: "transcript",
-      role: "user",
-      text: "I'm thinking we can use a hash map to store values we've seen, then check if the complement exists...",
-      timestamp: "00:45",
-      secondsSinceStart: 45,
-    },
-    {
-      type: "transcript",
-      role: "assistant",
-      text: "That sounds good. What would be the time complexity of that approach?",
-      timestamp: "01:12",
-      secondsSinceStart: 72,
-    },
-    {
-      type: "transcript",
-      role: "user",
-      text: "It would be O(n) since we only need to iterate through the array once.",
-      timestamp: "01:28",
-      secondsSinceStart: 88,
-    },
-    {
-      type: "transcript",
-      role: "assistant",
-      text: "Can you walk me through your approach to this problem?",
-      timestamp: "00:32",
-      secondsSinceStart: 32,
-    },
-    {
-      type: "transcript",
-      role: "user",
-      text: "I'm thinking we can use a hash map to store values we've seen, then check if the complement exists...",
-      timestamp: "00:45",
-      secondsSinceStart: 45,
-    },
-    {
-      type: "transcript",
-      role: "assistant",
-      text: "That sounds good. What would be the time complexity of that approach?",
-      timestamp: "01:12",
-      secondsSinceStart: 72,
-    },
-    {
-      type: "transcript",
-      role: "user",
-      text: "It would be O(n) since we only need to iterate through the array once.",
-      timestamp: "01:28",
-      secondsSinceStart: 88,
-    },
-    {
-      type: "transcript",
-      role: "assistant",
-      text: "Can you walk me through your approach to this problem?",
-      timestamp: "00:32",
-      secondsSinceStart: 32,
-    },
-    {
-      type: "transcript",
-      role: "user",
-      text: "I'm thinking we can use a hash map to store values we've seen, then check if the complement exists...",
-      timestamp: "00:45",
-      secondsSinceStart: 45,
-    },
-    {
-      type: "transcript",
-      role: "assistant",
-      text: "That sounds good. What would be the time complexity of that approach?",
-      timestamp: "01:12",
-      secondsSinceStart: 72,
-    },
-    {
-      type: "transcript",
-      role: "user",
-      text: "It would be O(n) since we only need to iterate through the array once.",
-      timestamp: "01:28",
-      secondsSinceStart: 88,
-    },
-    {
-      type: "transcript",
-      role: "assistant",
-      text: "Can you walk me through your approach to this problem?",
-      timestamp: "00:32",
-      secondsSinceStart: 32,
-    },
-    {
-      type: "transcript",
-      role: "user",
-      text: "I'm thinking we can use a hash map to store values we've seen, then check if the complement exists...",
-      timestamp: "00:45",
-      secondsSinceStart: 45,
-    },
-    {
-      type: "transcript",
-      role: "assistant",
-      text: "That sounds good. What would be the time complexity of that approach?",
-      timestamp: "01:12",
-      secondsSinceStart: 72,
-    },
-    {
-      type: "transcript",
-      role: "user",
-      text: "It would be O(n) since we only need to iterate through the array once.",
-      timestamp: "01:28",
-      secondsSinceStart: 88,
-    },
-    {
-      type: "transcript",
-      role: "assistant",
-      text: "Can you walk me through your approach to this problem?",
-      timestamp: "00:32",
-      secondsSinceStart: 32,
-    },
-    {
-      type: "transcript",
-      role: "user",
-      text: "I'm thinking we can use a hash map to store values we've seen, then check if the complement exists...",
-      timestamp: "00:45",
-      secondsSinceStart: 45,
-    },
-    {
-      type: "transcript",
-      role: "assistant",
-      text: "That sounds good. What would be the time complexity of that approach?",
-      timestamp: "01:12",
-      secondsSinceStart: 72,
-    },
-    {
-      type: "transcript",
-      role: "user",
-      text: "It would be O(n) since we only need to iterate through the array once.",
-      timestamp: "01:28",
-      secondsSinceStart: 88,
-    },
-  ],
-  call_duration: 900,
-  user_messages: 12,
-  assistant_messages: 10,
-  metadata: {},
-  created_at: new Date().toISOString(),
-  ratings: null,
-};
-
 export default function ScoreOverviewPage() {
   const router = useRouter();
   const [transcript, setTranscript] = useState<Transcript | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchLatestTranscript();
@@ -233,22 +83,80 @@ export default function ScoreOverviewPage() {
   const fetchLatestTranscript = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        "https://harvardapi.codestacx.com/api/transcript/latest",
-      );
+      setError(null);
+
+      // Simulate minimum loading time for better UX
+      const [response] = await Promise.all([
+        fetch("https://harvardapi.codestacx.com/api/transcript/latest"),
+        new Promise((resolve) => setTimeout(resolve, 1000)),
+      ]);
+
       if (!response.ok) throw new Error("Failed to fetch transcript");
       const data = await response.json();
       setTranscript(data);
     } catch (err) {
       console.error("Error fetching transcript:", err);
-      setTranscript(dummyTranscript);
+      setError("Unable to load your interview results. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Show loading screen
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navigation />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="inline-flex items-center justify-center">
+              <Loader2 className="w-8 h-8 animate-spin" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold">
+                Processing your interview...
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Analyzing your performance and generating feedback
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error screen
+  if (error || !transcript) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navigation />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center space-y-4 max-w-md mx-auto px-4">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold">Unable to load results</h2>
+              <p className="text-sm text-muted-foreground">
+                {error ||
+                  "No interview data found. Complete an interview first to see your results."}
+              </p>
+            </div>
+            <div className="flex gap-3 justify-center">
+              <Button variant="outline" onClick={() => fetchLatestTranscript()}>
+                Try Again
+              </Button>
+              <Button onClick={() => router.push("/practice")}>
+                Start New Interview
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Extract scores from ratings or use defaults
-  const scores = transcript?.ratings
+  const scores = transcript.ratings
     ? {
         communication: gradeToScore(transcript.ratings.communication_grade),
         problemSolving: gradeToScore(transcript.ratings.problem_solving_grade),
@@ -261,10 +169,10 @@ export default function ScoreOverviewPage() {
       };
 
   // Extract strengths from ratings
-  const strengths = transcript?.ratings?.strengths || [];
+  const strengths = transcript.ratings?.strengths || [];
 
   // Generate improvement suggestions from feedback
-  const improvements = transcript?.ratings
+  const improvements = transcript.ratings
     ? [
         {
           title: "Communication",
@@ -344,7 +252,7 @@ export default function ScoreOverviewPage() {
       <Navigation />
 
       <main className="flex-1">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 py-16">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24">
           {/* Header */}
           <header className="mb-16 text-center">
             <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
@@ -393,7 +301,7 @@ export default function ScoreOverviewPage() {
             </div>
           </section>
 
-          {/* Highlights & Lowlights */}
+          {/* Highlights & Feedback */}
           <section className="mb-20">
             <h2 className="text-2xl font-semibold mb-8">Key Moments</h2>
             <div className="grid md:grid-cols-2 gap-6">
@@ -416,7 +324,7 @@ export default function ScoreOverviewPage() {
                     </ul>
                   ) : (
                     <p className="text-sm text-muted-foreground">
-                      Complete an interview to see your strengths
+                      No specific strengths identified in this session
                     </p>
                   )}
                 </CardContent>
@@ -430,34 +338,22 @@ export default function ScoreOverviewPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {transcript?.ratings?.overall_comments ? (
-                    <p className="text-sm">
-                      {transcript.ratings.overall_comments}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Complete an interview to receive detailed feedback
-                    </p>
-                  )}
+                  <p className="text-sm">
+                    {transcript.ratings?.overall_comments ||
+                      "No specific feedback available for this session"}
+                  </p>
                 </CardContent>
               </Card>
             </div>
           </section>
 
-          {/* Session Timeline - Updated to match hero design */}
+          {/* Session Timeline */}
           <section className="mb-20">
             <h2 className="text-2xl font-semibold mb-8">Session Timeline</h2>
-            <div className="border border-border/50 rounded-lg bg-card p-6">
-              {loading ? (
-                <div className="text-center py-8">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
-                  <p className="text-muted-foreground mt-4">
-                    Loading transcript...
-                  </p>
-                </div>
-              ) : (
+            <Card>
+              <CardContent className="p-6">
                 <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {transcript?.transcript
+                  {transcript.transcript
                     .filter((s) => s.type === "transcript")
                     .map((segment, index) => (
                       <div key={index} className="flex items-start gap-3">
@@ -478,21 +374,21 @@ export default function ScoreOverviewPage() {
                       </div>
                     ))}
 
-                  {transcript?.transcript.filter((s) => s.type === "transcript")
+                  {transcript.transcript.filter((s) => s.type === "transcript")
                     .length === 0 && (
                     <p className="text-muted-foreground text-center py-4">
                       No conversation messages in this transcript
                     </p>
                   )}
                 </div>
-              )}
-            </div>
+              </CardContent>
+            </Card>
           </section>
 
-          {/* Next Steps */}
-          <section className="mb-20">
-            <h2 className="text-2xl font-semibold mb-8">Detailed Feedback</h2>
-            {improvements.length > 0 ? (
+          {/* Detailed Feedback */}
+          {improvements.length > 0 && (
+            <section className="mb-20">
+              <h2 className="text-2xl font-semibold mb-8">Detailed Feedback</h2>
               <div className="space-y-4">
                 {improvements.map((improvement, i) => (
                   <Card
@@ -532,16 +428,8 @@ export default function ScoreOverviewPage() {
                   </Card>
                 ))}
               </div>
-            ) : (
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <p className="text-muted-foreground">
-                    Complete an interview to receive personalized feedback
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </section>
+            </section>
+          )}
 
           {/* Action Buttons */}
           <section className="flex justify-center gap-4">
