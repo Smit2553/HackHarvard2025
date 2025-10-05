@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import InfoPanel from "@/components/InfoPanel";
 import Editor from "@/components/Editor";
@@ -65,6 +65,7 @@ export default function InterviewPage() {
   const [mounted, setMounted] = useState(false);
   const [language, setLanguage] = useState("python");
   const { resolvedTheme, setTheme } = useTheme();
+  const callInitializedRef = useRef(false);
 
   // Convert Vapi transcript to TranscriptPanel format
   const transcriptMessages = transcript
@@ -109,13 +110,23 @@ export default function InterviewPage() {
     fetchProblem();
   }, []);
 
-  // Start Vapi call when component mounts
+  // Start Vapi call when component mounts with metadata (only once)
   useEffect(() => {
     const initCall = async () => {
+      // Only initialize the call once, even if dependencies change
+      if (callInitializedRef.current) return;
+      if (!problemData) return; // Wait for problem data to load
+
       try {
-        await startCall();
+        callInitializedRef.current = true; // Mark as initialized
+        await startCall({
+          problemTitle: problemData?.title,
+          problemType: problemData?.type,
+          language: language,
+        });
       } catch (err) {
         console.error("Failed to start interview call:", err);
+        callInitializedRef.current = false; // Reset on error so it can retry
       }
     };
     initCall();
@@ -126,7 +137,8 @@ export default function InterviewPage() {
         endCall();
       }
     };
-  }, [startCall, endCall, isCallActive]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [problemData]); // Only depend on problemData to avoid restarting call
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -147,9 +159,10 @@ export default function InterviewPage() {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
-  const handleEndInterview = () => {
+  const handleEndInterview = async () => {
+    // End the call (VapiProvider will handle transcript upload automatically)
     if (isCallActive) {
-      endCall();
+      await endCall();
     }
     router.push("/score");
   };
