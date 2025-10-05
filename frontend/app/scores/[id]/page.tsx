@@ -62,10 +62,10 @@ const gradeToScore = (grade: string): number => {
     D: [60, 67],
     F: [40, 59],
   };
-  
+
   const range = gradeRanges[grade];
   if (!range) return 75; // Default to 75 if grade not recognized
-  
+
   // Generate random number within the range
   const [min, max] = range;
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -121,7 +121,7 @@ export default function ScoreOverviewPage() {
 
   // Extract strengths from ratings
   const strengths = transcript?.ratings?.strengths || [];
-  
+
   // Generate improvement suggestions from feedback
   const improvements = transcript?.ratings
     ? [
@@ -352,7 +352,9 @@ export default function ScoreOverviewPage() {
                 </CardHeader>
                 <CardContent>
                   {transcript?.ratings?.overall_comments ? (
-                    <p className="text-sm">{transcript.ratings.overall_comments}</p>
+                    <p className="text-sm">
+                      {transcript.ratings.overall_comments}
+                    </p>
                   ) : (
                     <p className="text-sm text-muted-foreground">
                       Complete an interview to receive detailed feedback
