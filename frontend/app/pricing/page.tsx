@@ -67,7 +67,7 @@ export default function PricingPage() {
               Simple, transparent pricing
             </h1>
             <p className="text-base md:text-lg text-muted-foreground">
-              Start free. Upgrade when you're ready.
+              Start free. Upgrade when you&#39;re ready.
             </p>
           </div>
 
