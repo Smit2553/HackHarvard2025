@@ -27,7 +27,7 @@ interface Transcript {
   call_duration: number;
   user_messages: number;
   assistant_messages: number;
-  metadata: any;
+  metadata: Record<string, unknown>;
   created_at: string;
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { Navigation } from "@/components/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Clock,
   MessageSquare,
@@ -26,7 +26,7 @@ interface Transcript {
   call_duration: number;
   user_messages: number;
   assistant_messages: number;
-  metadata: any;
+  metadata: Record<string, unknown>;
   created_at: string;
 }
 
@@ -39,13 +39,7 @@ export default function TranscriptDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (transcriptId) {
-      fetchTranscript();
-    }
-  }, [transcriptId]);
-
-  const fetchTranscript = async () => {
+  const fetchTranscript = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(
@@ -63,7 +57,13 @@ export default function TranscriptDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [transcriptId]);
+
+  useEffect(() => {
+    if (transcriptId) {
+      fetchTranscript();
+    }
+  }, [transcriptId, fetchTranscript]);
 
   const formatDuration = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
