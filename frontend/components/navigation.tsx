@@ -1,12 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Moon, Sun } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
+import {
+  HashSquareIcon,
+  HashSquareSolidIcon,
+} from "@/components/icons/hash-square";
 
 export function Navigation() {
   const router = useRouter();
@@ -33,20 +36,8 @@ export function Navigation() {
           }}
         >
           <div className="relative w-6 h-6">
-            <Image
-              src={"/hash-square.svg"}
-              alt={"Icon"}
-              width={24}
-              height={24}
-              className="absolute inset-0 group-hover:opacity-0 transition-opacity"
-            />
-            <Image
-              src={"/hash-square-solid.svg"}
-              alt={"Icon"}
-              width={24}
-              height={24}
-              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
-            />
+            <HashSquareIcon className="absolute inset-0 group-hover:opacity-0" />
+            <HashSquareSolidIcon className="absolute inset-0 opacity-0 group-hover:opacity-100" />
           </div>
           <span className="font-semibold text-base">Offscript</span>
         </div>
@@ -61,7 +52,10 @@ export function Navigation() {
           >
             Companies
           </button>
-          <button className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+          <button
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            onClick={() => router.push("/pricing")}
+          >
             Pricing
           </button>
         </nav>
@@ -71,7 +65,7 @@ export function Navigation() {
         {mounted && (
           <button
             onClick={toggleTheme}
-            className="relative w-9 h-9 rounded-md hover:bg-muted transition-colors flex items-center justify-center"
+            className="h-9 w-9 rounded-md hover:bg-muted transition-colors flex items-center justify-center"
             aria-label="Toggle theme"
           >
             <Sun className="h-4 w-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
@@ -79,10 +73,15 @@ export function Navigation() {
           </button>
         )}
 
-        <button className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer px-2">
+        <button className="h-9 px-3 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded-md hover:bg-muted flex items-center">
           Sign in
         </button>
-        <Button size="sm" onClick={() => router.push("/practice")}>
+
+        <Button
+          size="sm"
+          className="h-9"
+          onClick={() => router.push("/practice")}
+        >
           Start Practice
         </Button>
       </div>
@@ -91,7 +90,7 @@ export function Navigation() {
         {mounted && (
           <button
             onClick={toggleTheme}
-            className="relative w-9 h-9 rounded-md hover:bg-muted transition-colors flex items-center justify-center"
+            className="h-9 w-9 rounded-md hover:bg-muted transition-colors flex items-center justify-center"
             aria-label="Toggle theme"
           >
             <Sun className="h-4 w-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
@@ -100,32 +99,14 @@ export function Navigation() {
         )}
 
         <button
-          className="w-9 h-9 rounded-md hover:bg-muted transition-colors flex items-center justify-center"
+          className="h-9 w-9 rounded-md hover:bg-muted transition-colors flex items-center justify-center"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
-          <AnimatePresence mode="wait">
-            {mobileMenuOpen ? (
-              <motion.div
-                key="close"
-                initial={{ rotate: -90, opacity: 0 }}
-                animate={{ rotate: 0, opacity: 1 }}
-                exit={{ rotate: 90, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <X className="w-5 h-5" />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="menu"
-                initial={{ rotate: 90, opacity: 0 }}
-                animate={{ rotate: 0, opacity: 1 }}
-                exit={{ rotate: -90, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Menu className="w-5 h-5" />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {mobileMenuOpen ? (
+            <X className="w-5 h-5" />
+          ) : (
+            <Menu className="w-5 h-5" />
+          )}
         </button>
       </div>
 
@@ -138,47 +119,18 @@ export function Navigation() {
             transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="absolute top-14 left-0 right-0 bg-background border-b border-border/50 md:hidden overflow-hidden"
           >
-            <motion.nav
-              initial="closed"
-              animate="open"
-              exit="closed"
-              variants={{
-                open: {
-                  transition: {
-                    staggerChildren: 0.05,
-                    delayChildren: 0.1,
-                  },
-                },
-                closed: {
-                  transition: {
-                    staggerChildren: 0.03,
-                    staggerDirection: -1,
-                  },
-                },
-              }}
-              className="flex flex-col p-4 space-y-1"
-            >
+            <nav className="flex flex-col p-4 space-y-1">
               {["Problems", "Companies", "Pricing"].map((item) => (
-                <motion.button
+                <button
                   key={item}
-                  variants={{
-                    open: { opacity: 1, x: 0 },
-                    closed: { opacity: 0, x: -20 },
-                  }}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left px-3 py-2 rounded-md hover:bg-muted/50"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item}
-                </motion.button>
+                </button>
               ))}
 
-              <motion.div
-                variants={{
-                  open: { opacity: 1, x: 0 },
-                  closed: { opacity: 0, x: -20 },
-                }}
-                className="pt-3 border-t border-border/50 space-y-2"
-              >
+              <div className="pt-3 border-t border-border/50 space-y-2">
                 <button
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left w-full px-3 py-2 rounded-md hover:bg-muted/50"
                   onClick={() => setMobileMenuOpen(false)}
@@ -195,8 +147,8 @@ export function Navigation() {
                 >
                   Start Practice
                 </Button>
-              </motion.div>
-            </motion.nav>
+              </div>
+            </nav>
           </motion.div>
         )}
       </AnimatePresence>
