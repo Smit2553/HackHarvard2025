@@ -1,12 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Moon, Sun } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
+import {
+  HashSquareIcon,
+  HashSquareSolidIcon,
+} from "@/components/icons/hash-square";
 
 export function Navigation() {
   const router = useRouter();
@@ -33,20 +36,8 @@ export function Navigation() {
           }}
         >
           <div className="relative w-6 h-6">
-            <Image
-              src={"/hash-square.svg"}
-              alt={"Icon"}
-              width={24}
-              height={24}
-              className="absolute inset-0 group-hover:opacity-0 transition-opacity"
-            />
-            <Image
-              src={"/hash-square-solid.svg"}
-              alt={"Icon"}
-              width={24}
-              height={24}
-              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
-            />
+            <HashSquareIcon className="absolute inset-0 group-hover:opacity-0" />
+            <HashSquareSolidIcon className="absolute inset-0 opacity-0 group-hover:opacity-100" />
           </div>
           <span className="font-semibold text-base">Offscript</span>
         </div>
