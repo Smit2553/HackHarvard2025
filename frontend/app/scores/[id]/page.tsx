@@ -88,30 +88,30 @@ export default function ScoreOverviewPage() {
   const improvements = defaultImprovements;
 
   useEffect(() => {
+    const fetchTranscript = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const url = transcriptId
+          ? `https://harvardapi.codestacx.com/api/transcript/${transcriptId}`
+          : "https://harvardapi.codestacx.com/api/transcript/latest";
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Failed to fetch transcript");
+
+        const data = await response.json();
+        setTranscript(data);
+      } catch (err) {
+        console.error("Error fetching transcript:", err);
+        setError("Failed to load transcript");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchTranscript();
   }, [transcriptId]);
-
-  const fetchTranscript = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const url = transcriptId
-        ? `https://harvardapi.codestacx.com/api/transcript/${transcriptId}`
-        : "https://harvardapi.codestacx.com/api/transcript/latest";
-
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("Failed to fetch transcript");
-
-      const data = await response.json();
-      setTranscript(data);
-    } catch (err) {
-      console.error("Error fetching transcript:", err);
-      setError("Failed to load transcript");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const average = Math.round(
     (scores.communication + scores.problemSolving + scores.implementation) / 3,
