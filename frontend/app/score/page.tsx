@@ -63,7 +63,7 @@ export default function ScoreOverviewPage({
     try {
       setLoading(true);
       const response = await fetch(
-        "http://localhost:8000/api/transcript/latest",
+        "https://harvardapi.codestacx.com/api/transcript/latest",
       );
       if (!response.ok) {
         throw new Error("Failed to fetch transcript");

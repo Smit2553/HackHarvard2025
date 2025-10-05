@@ -36,7 +36,9 @@ export default function VisualizationsPage() {
   const fetchTranscripts = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:8000/api/transcripts");
+      const response = await fetch(
+        "https://harvardapi.codestacx.com/api/transcripts",
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch transcripts");
       }

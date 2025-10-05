@@ -49,7 +49,7 @@ export default function TranscriptDetailPage() {
     try {
       setLoading(true);
       const response = await fetch(
-        `http://localhost:8000/api/transcript/${transcriptId}`,
+        `https://harvardapi.codestacx.com/api/transcript/${transcriptId}`,
       );
       if (!response.ok) {
         throw new Error("Failed to fetch transcript");
