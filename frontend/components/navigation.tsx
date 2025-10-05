@@ -1,12 +1,41 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Moon, Sun } from "lucide-react";
+import { Menu, X, Moon, Sun, User, LogOut, Settings } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
+import {
+  HashSquareIcon,
+  HashSquareSolidIcon,
+} from "@/components/icons/hash-square";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+// User type definition
+interface User {
+  email: string;
+  name: string;
+  avatar: string;
+}
+
+// Dummy user data
+const DUMMY_USER: User = {
+  email: "john.doe@example.com",
+  name: "John Doe",
+  avatar: "https://github.com/soradotwav.png",
+};
+
+// Storage keys
+const AUTH_STORAGE_KEY = "offscript_auth";
 
 export function Navigation() {
   const router = useRouter();
@@ -14,54 +43,114 @@ export function Navigation() {
   const [mounted, setMounted] = useState(false);
   const { setTheme, resolvedTheme } = useTheme();
 
+  // Auth state
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  // Load auth state from localStorage on mount
   useEffect(() => {
     setMounted(true);
+
+    // Load persisted auth state
+    if (typeof window !== "undefined") {
+      try {
+        const storedAuth = localStorage.getItem(AUTH_STORAGE_KEY);
+        if (storedAuth) {
+          const authData = JSON.parse(storedAuth);
+          if (authData.isLoggedIn && authData.user) {
+            setIsLoggedIn(true);
+            setUser(authData.user);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load auth state:", error);
+        localStorage.removeItem(AUTH_STORAGE_KEY);
+      }
+    }
   }, []);
+
+  // Persist auth state to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const authData = {
+        isLoggedIn,
+        user,
+      };
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
+    }
+  }, [isLoggedIn, user]);
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
+
+  // Fake login function - automatically logs into dummy user
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+    setUser(DUMMY_USER);
+    console.log("Logged in as:", DUMMY_USER.name);
+  };
+
+  // Logout function
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setUser(null);
+    setMobileMenuOpen(false);
+    console.log("Logged out");
+    router.push("/");
+  };
+
+  const handleNavigation = (path: string) => {
+    setMobileMenuOpen(false);
+    router.push(path);
+  };
+
+  const navigationItems = [
+    { name: "Problems", path: "/problems" },
+    { name: "Companies", path: "/practice/company" },
+    { name: "Pricing", path: "/pricing" },
+  ];
 
   return (
     <header className="border-b border-border/50 px-4 md:px-6 h-14 flex items-center justify-between flex-shrink-0">
       <div className="flex items-center gap-4 md:gap-6">
         <div
           className="flex items-center gap-2 group cursor-pointer"
-          onClick={() => {
-            router.push("/");
-            setMobileMenuOpen(false);
+          onClick={() => handleNavigation("/")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              handleNavigation("/");
+            }
           }}
         >
           <div className="relative w-6 h-6">
-            <Image
-              src={"/hash-square.svg"}
-              alt={"Icon"}
-              width={24}
-              height={24}
-              className="absolute inset-0 group-hover:opacity-0 transition-opacity"
-            />
-            <Image
-              src={"/hash-square-solid.svg"}
-              alt={"Icon"}
-              width={24}
-              height={24}
-              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
-            />
+            <HashSquareIcon className="absolute inset-0 group-hover:opacity-0 transition-opacity" />
+            <HashSquareSolidIcon className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
           <span className="font-semibold text-base">Offscript</span>
         </div>
 
         <nav className="hidden md:flex items-center gap-6">
-          <button className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+          <button
+            type="button"
+            className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
             Problems
           </button>
           <button
-            onClick={() => router.push("/practice/companies")}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            type="button"
+            onClick={() => router.push("/practice/company")}
+            className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             Companies
           </button>
-          <button className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+          <button
+            type="button"
+            className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => router.push("/pricing")}
+          >
             Pricing
           </button>
         </nav>
@@ -70,8 +159,9 @@ export function Navigation() {
       <div className="hidden md:flex items-center gap-3">
         {mounted && (
           <button
+            type="button"
             onClick={toggleTheme}
-            className="relative w-9 h-9 rounded-md hover:bg-muted transition-colors flex items-center justify-center"
+            className="h-9 w-9 rounded-md hover:bg-muted transition-colors flex items-center justify-center"
             aria-label="Toggle theme"
           >
             <Sun className="h-4 w-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
@@ -79,10 +169,64 @@ export function Navigation() {
           </button>
         )}
 
-        <button className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer px-2">
-          Sign in
-        </button>
-        <Button size="sm" onClick={() => router.push("/practice")}>
+        {isLoggedIn && user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Avatar className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity">
+                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarFallback>
+                  {user.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">
+                    {user.name}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {user.email}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push("/profile")}>
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/settings")}>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="text-red-600 dark:text-red-400"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <button
+            type="button"
+            onClick={handleLogin}
+            className="cursor-pointer h-9 px-3 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted flex items-center"
+          >
+            Sign in
+          </button>
+        )}
+
+        <Button
+          size="sm"
+          className="h-9"
+          onClick={() => router.push("/practice")}
+        >
           Start Practice
         </Button>
       </div>
@@ -90,8 +234,9 @@ export function Navigation() {
       <div className="flex md:hidden items-center gap-2">
         {mounted && (
           <button
+            type="button"
             onClick={toggleTheme}
-            className="relative w-9 h-9 rounded-md hover:bg-muted transition-colors flex items-center justify-center"
+            className="h-9 w-9 rounded-md hover:bg-muted transition-colors flex items-center justify-center"
             aria-label="Toggle theme"
           >
             <Sun className="h-4 w-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
@@ -100,32 +245,16 @@ export function Navigation() {
         )}
 
         <button
-          className="w-9 h-9 rounded-md hover:bg-muted transition-colors flex items-center justify-center"
+          type="button"
+          className="h-9 w-9 rounded-md hover:bg-muted transition-colors flex items-center justify-center"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle mobile menu"
         >
-          <AnimatePresence mode="wait">
-            {mobileMenuOpen ? (
-              <motion.div
-                key="close"
-                initial={{ rotate: -90, opacity: 0 }}
-                animate={{ rotate: 0, opacity: 1 }}
-                exit={{ rotate: 90, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <X className="w-5 h-5" />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="menu"
-                initial={{ rotate: 90, opacity: 0 }}
-                animate={{ rotate: 0, opacity: 1 }}
-                exit={{ rotate: -90, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Menu className="w-5 h-5" />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {mobileMenuOpen ? (
+            <X className="w-5 h-5" />
+          ) : (
+            <Menu className="w-5 h-5" />
+          )}
         </button>
       </div>
 
@@ -136,67 +265,75 @@ export function Navigation() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="absolute top-14 left-0 right-0 bg-background border-b border-border/50 md:hidden overflow-hidden"
+            className="absolute top-14 left-0 right-0 bg-background border-b border-border/50 md:hidden overflow-hidden z-50"
           >
-            <motion.nav
-              initial="closed"
-              animate="open"
-              exit="closed"
-              variants={{
-                open: {
-                  transition: {
-                    staggerChildren: 0.05,
-                    delayChildren: 0.1,
-                  },
-                },
-                closed: {
-                  transition: {
-                    staggerChildren: 0.03,
-                    staggerDirection: -1,
-                  },
-                },
-              }}
-              className="flex flex-col p-4 space-y-1"
-            >
-              {["Problems", "Companies", "Pricing"].map((item) => (
-                <motion.button
-                  key={item}
-                  variants={{
-                    open: { opacity: 1, x: 0 },
-                    closed: { opacity: 0, x: -20 },
-                  }}
+            <nav className="flex flex-col p-4 space-y-1">
+              {navigationItems.map((item) => (
+                <button
+                  key={item.name}
+                  type="button"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left px-3 py-2 rounded-md hover:bg-muted/50"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={() => handleNavigation(item.path)}
                 >
-                  {item}
-                </motion.button>
+                  {item.name}
+                </button>
               ))}
 
-              <motion.div
-                variants={{
-                  open: { opacity: 1, x: 0 },
-                  closed: { opacity: 0, x: -20 },
-                }}
-                className="pt-3 border-t border-border/50 space-y-2"
-              >
-                <button
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left w-full px-3 py-2 rounded-md hover:bg-muted/50"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Sign in
-                </button>
-                <Button
-                  size="sm"
-                  className="w-full"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    router.push("/practice");
-                  }}
-                >
-                  Start Practice
-                </Button>
-              </motion.div>
-            </motion.nav>
+              <div className="pt-3 border-t border-border/50 space-y-2">
+                {isLoggedIn && user ? (
+                  <>
+                    <button
+                      type="button"
+                      className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors text-left w-full px-3 py-2 rounded-md hover:bg-muted/50"
+                      onClick={() => handleNavigation("/profile")}
+                    >
+                      Profile
+                    </button>
+                    <button
+                      type="button"
+                      className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors text-left w-full px-3 py-2 rounded-md hover:bg-muted/50"
+                      onClick={() => handleNavigation("/settings")}
+                    >
+                      Settings
+                    </button>
+                    <Button
+                      size="sm"
+                      className="w-full"
+                      onClick={() => handleNavigation("/practice")}
+                    >
+                      Start Practice
+                    </Button>
+                    <button
+                      type="button"
+                      className="cursor-pointer text-sm text-red-600 dark:text-red-400 hover:text-red-500 transition-colors text-left w-full px-3 py-2 rounded-md hover:bg-muted/50"
+                      onClick={handleLogout}
+                    >
+                      Log out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left w-full px-3 py-2 rounded-md hover:bg-muted/50"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        handleLogin();
+                      }}
+                    >
+                      Sign in
+                    </button>
+                    <Button
+                      size="sm"
+                      className="w-full"
+                      onClick={() => handleNavigation("/practice")}
+                    >
+                      Start Practice
+                    </Button>
+                  </>
+                )}
+              </div>
+            </nav>
           </motion.div>
         )}
       </AnimatePresence>

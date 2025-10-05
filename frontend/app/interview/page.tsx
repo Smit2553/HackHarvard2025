@@ -15,6 +15,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Clock, Sun, Moon, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -67,7 +76,10 @@ export default function InterviewPage() {
   const [rightCollapsed, setRightCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [language, setLanguage] = useState("python");
+  const [showEndConfirmation, setShowEndConfirmation] = useState(false);
+  const [isEndingInterview, setIsEndingInterview] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
+  const callInitializedRef = useRef(false);
 
   // Code editor state
   const [editorCode, setEditorCode] = useState<string>("");
@@ -148,21 +160,30 @@ export default function InterviewPage() {
   // Start Vapi call when component mounts
   useEffect(() => {
     const initCall = async () => {
+      if (callInitializedRef.current) return;
+      if (!problemData) return;
+
       try {
-        await startCall();
+        callInitializedRef.current = true;
+        await startCall({
+          problemTitle: problemData?.title,
+          problemType: problemData?.type,
+          language: language,
+        });
       } catch (err) {
         console.error("Failed to start interview call:", err);
+        callInitializedRef.current = false;
       }
     };
     initCall();
 
-    // Cleanup: end call when component unmounts
     return () => {
       if (isCallActive) {
         endCall();
       }
     };
-  }, [startCall, endCall, isCallActive]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [problemData]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -191,11 +212,27 @@ export default function InterviewPage() {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
-  const handleEndInterview = () => {
-    if (isCallActive) {
-      endCall();
+  const handleEndInterviewClick = () => {
+    setShowEndConfirmation(true);
+  };
+
+  const handleConfirmEndInterview = async () => {
+    setIsEndingInterview(true);
+    setShowEndConfirmation(false);
+
+    try {
+      if (isCallActive) {
+        await endCall();
+      }
+      router.push("/scores");
+    } catch (err) {
+      console.error("Error ending interview:", err);
+      setIsEndingInterview(false);
     }
-    router.push("/score");
+  };
+
+  const handleCancelEndInterview = () => {
+    setShowEndConfirmation(false);
   };
 
   return (
@@ -275,9 +312,10 @@ export default function InterviewPage() {
               <Button
                 size="sm"
                 variant="destructive"
-                onClick={handleEndInterview}
+                onClick={handleEndInterviewClick}
+                disabled={isEndingInterview}
               >
-                End Interview
+                {isEndingInterview ? "Ending..." : "End Interview"}
               </Button>
             </div>
           </div>
@@ -335,6 +373,33 @@ export default function InterviewPage() {
           )}
         </div>
       </div>
+
+      <AlertDialog
+        open={showEndConfirmation}
+        onOpenChange={setShowEndConfirmation}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>End Interview?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to end the interview? This action cannot be
+              undone and you will be redirected to your scores.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelEndInterview}>
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmEndInterview}
+              disabled={isEndingInterview}
+            >
+              {isEndingInterview ? "Ending..." : "End Interview"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

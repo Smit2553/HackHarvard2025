@@ -11,7 +11,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/problems"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Problems
                 </Link>
@@ -19,7 +19,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/companies"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Companies
                 </Link>
@@ -27,7 +27,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/pricing"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Pricing
                 </Link>

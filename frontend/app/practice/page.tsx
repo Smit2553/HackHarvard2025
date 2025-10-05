@@ -87,8 +87,8 @@ export default function PracticePage() {
             <p className="text-sm text-muted-foreground">
               Not sure where to start?{" "}
               <button
-                onClick={() => router.push("/practice/recommended")}
-                className="underline underline-offset-4 hover:text-foreground transition-colors"
+                onClick={() => router.push("/interview")}
+                className="cursor-pointer underline underline-offset-4 hover:text-foreground transition-colors"
               >
                 Try our recommended path
               </button>
