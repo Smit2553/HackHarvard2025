@@ -127,37 +127,6 @@ async def receive_transcript(request: TranscriptRequest):
         raise HTTPException(status_code=500, detail=f"Error processing transcript: {str(e)}")
 
 
-@router.get("/api/transcript/{transcript_id}")
-async def get_transcript(transcript_id: int):
-    """
-    GET endpoint to retrieve a specific transcript by ID.
-    
-    Returns:
-    {
-        "id": 1,
-        "transcript": [...],
-        "call_duration": 300.0,
-        "user_messages": 5,
-        "assistant_messages": 5,
-        "metadata": {...},
-        "created_at": "2025-10-04T12:00:00"
-    }
-    """
-    try:
-        transcript = database.get_transcript(transcript_id)
-        
-        if not transcript:
-            raise HTTPException(status_code=404, detail=f"Transcript with ID {transcript_id} not found")
-        
-        return transcript
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"Error retrieving transcript: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error retrieving transcript: {str(e)}")
-
-
 @router.get("/api/transcripts")
 async def get_all_transcripts():
     """
@@ -215,6 +184,37 @@ async def get_latest_transcript():
     except Exception as e:
         print(f"Error retrieving latest transcript: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error retrieving latest transcript: {str(e)}")
+
+
+@router.get("/api/transcript/{transcript_id}")
+async def get_transcript(transcript_id: int):
+    """
+    GET endpoint to retrieve a specific transcript by ID.
+    
+    Returns:
+    {
+        "id": 1,
+        "transcript": [...],
+        "call_duration": 300.0,
+        "user_messages": 5,
+        "assistant_messages": 5,
+        "metadata": {...},
+        "created_at": "2025-10-04T12:00:00"
+    }
+    """
+    try:
+        transcript = database.get_transcript(transcript_id)
+        
+        if not transcript:
+            raise HTTPException(status_code=404, detail=f"Transcript with ID {transcript_id} not found")
+        
+        return transcript
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error retrieving transcript: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving transcript: {str(e)}")
 
 
 @router.delete("/api/transcript/{transcript_id}")
