@@ -30,7 +30,7 @@ export default function PracticePage() {
       description: "Start easy and work your way up to harder problems",
       icon: TrendingUp,
       stats: "Easy (15 min) • Medium (25 min) • Hard (45 min)",
-      href: "/practice/difficulty",
+      href: "/practice/companies", // Temporary until we have a dedicated difficulty page
     },
     {
       id: "random",
@@ -38,7 +38,7 @@ export default function PracticePage() {
       description: "Browse all problems or let us pick one randomly",
       icon: Shuffle,
       stats: "500+ problems across all topics",
-      href: "/practice/all",
+      href: "/practice/companies", // Temporary until we have a dedicated random page
     },
   ];
 

@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import List, Optional, Literal
 from datetime import datetime
 import database
+from gemini_rating_service import get_rating_service, TranscriptRating
 
 router = APIRouter()
 
@@ -106,6 +107,37 @@ async def receive_transcript(request: TranscriptRequest):
             metadata=request.metadata
         )
         
+        # Automatically rate the transcript with Gemini AI
+        ratings_dict = None
+        try:
+            print(f"\n{'='*60}")
+            print(f"🤖 Auto-rating transcript ID: {transcript_id}")
+            print(f"   Duration: {call_duration:.1f}s")
+            print(f"   Messages: {user_messages} user, {assistant_messages} assistant")
+            
+            rating_service = get_rating_service()
+            print(f"   Sending to Gemini API for rating...")
+            
+            rating = rating_service.rate_transcript(
+                transcript=transcript_dict,
+                metadata=request.metadata
+            )
+            
+            # Save ratings to database
+            ratings_dict = rating.dict()
+            database.save_ratings(transcript_id, ratings_dict)
+            
+            print(f"   ✅ Auto-rating complete and saved!")
+            print(f"   Communication: {rating.communication_grade}")
+            print(f"   Problem Solving: {rating.problem_solving_grade}")
+            print(f"   Implementation: {rating.implementation_grade}")
+            print(f"{'='*60}\n")
+            
+        except Exception as rating_error:
+            print(f"⚠️  Warning: Failed to auto-rate transcript: {str(rating_error)}")
+            print(f"   Transcript saved but ratings not available")
+            # Continue even if rating fails - transcript is still saved
+        
         response_data = {
             "status": "success",
             "message": "Transcript received and saved to database",
@@ -115,7 +147,9 @@ async def receive_transcript(request: TranscriptRequest):
             "transcript_summary": {
                 "user_messages": user_messages,
                 "assistant_messages": assistant_messages
-            }
+            },
+            "ratings": ratings_dict,
+            "auto_rated": ratings_dict is not None
         }
         
         return response_data
@@ -252,3 +286,32 @@ async def delete_transcript(transcript_id: int):
 async def transcript_health():
     """Health check for transcript endpoint"""
     return {"status": "healthy", "endpoint": "transcript"}
+
+
+@router.get("/api/transcript/{transcript_id}/improvements")
+async def get_improvement_points(transcript_id: int):
+    """
+    GET endpoint to generate and retrieve 3 improvement points for a specific transcript.
+    """
+    try:
+        # Retrieve the transcript from the database
+        transcript_data = database.get_transcript(transcript_id)
+        if not transcript_data:
+            raise HTTPException(status_code=404, detail=f"Transcript with ID {transcript_id} not found")
+
+        # Initialize the Gemini service
+        rating_service = get_rating_service()
+
+        # Generate improvement points
+        improvement_points = rating_service.generate_improvement_points(
+            transcript=transcript_data['transcript'],
+            metadata=transcript_data.get('metadata')
+        )
+
+        return improvement_points.dict()
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error generating improvement points for transcript {transcript_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error generating improvement points: {str(e)}")

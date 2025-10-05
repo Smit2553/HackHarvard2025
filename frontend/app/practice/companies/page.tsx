@@ -140,7 +140,7 @@ export default function CompanyPracticePage() {
               <div className="flex items-center gap-2 mb-6">
                 <button
                   onClick={() => setSelectedFilter("all")}
-                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                  className={`cursor-pointer px-3 py-1.5 text-sm rounded-md transition-colors ${
                     selectedFilter === "all"
                       ? "bg-foreground text-background"
                       : "text-muted-foreground hover:text-foreground"
@@ -150,7 +150,7 @@ export default function CompanyPracticePage() {
                 </button>
                 <button
                   onClick={() => setSelectedFilter("trending")}
-                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                  className={`cursor-pointer px-3 py-1.5 text-sm rounded-md transition-colors ${
                     selectedFilter === "trending"
                       ? "bg-foreground text-background"
                       : "text-muted-foreground hover:text-foreground"
@@ -160,7 +160,7 @@ export default function CompanyPracticePage() {
                 </button>
                 <button
                   onClick={() => setSelectedFilter("beginner")}
-                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                  className={`cursor-pointer px-3 py-1.5 text-sm rounded-md transition-colors ${
                     selectedFilter === "beginner"
                       ? "bg-foreground text-background"
                       : "text-muted-foreground hover:text-foreground"
@@ -191,7 +191,7 @@ export default function CompanyPracticePage() {
                     <button
                       key={company.id}
                       onClick={() => router.push(`/interview`)}
-                      className="group p-6 rounded-lg border border-border/50 hover:border-border/100 transition-all text-left hover:bg-muted/30"
+                      className="cursor-pointer group p-6 rounded-lg border border-border/50 hover:border-border/100 transition-all text-left hover:bg-muted/30"
                     >
                       <div className="space-y-3">
                         <div className="flex items-start justify-between">

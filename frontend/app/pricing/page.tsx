@@ -117,9 +117,9 @@ export default function PricingPage() {
                     variant={plan.variant}
                     onClick={() => {
                       if (plan.name === "Team") {
-                        window.location.href = "mailto:team@offscript.ai";
+                        window.location.href = "mailto:"; // add email
                       } else {
-                        router.push("/sign-up");
+                        router.push("/"); // add sign-up
                       }
                     }}
                   >
