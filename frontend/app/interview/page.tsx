@@ -6,6 +6,7 @@ import InfoPanel from "@/components/InfoPanel";
 import Editor from "@/components/Editor";
 import TranscriptPanel from "@/components/TranscriptPanel";
 import { Button } from "@/components/ui/button";
+import { useVapi } from "@/components/VapiProvider";
 import {
   Select,
   SelectContent,
@@ -48,49 +49,37 @@ const languages = [
 
 export default function InterviewPage() {
   const router = useRouter();
+  const {
+    startCall,
+    endCall,
+    isCallActive,
+    transcript,
+    error: vapiError,
+  } = useVapi();
   const [problemData, setProblemData] = useState<LeetCodeProblem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timeInSeconds, setTimeInSeconds] = useState(15 * 60);
-  const [showEndDialog, setShowEndDialog] = useState(false);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [language, setLanguage] = useState("python");
   const { resolvedTheme, setTheme } = useTheme();
 
-  const tempTranscriptMessages = [
-    {
-      speaker: "interviewer" as const,
-      timestamp: "00:32",
-      text: "Can you walk me through your approach to this problem?",
-    },
-    {
-      speaker: "user" as const,
-      timestamp: "00:45",
-      text: "I'm thinking we can use a hash map to store values we've seen, then check if the complement exists...",
-    },
-    {
-      speaker: "interviewer" as const,
-      timestamp: "01:12",
-      text: "Good. What would be the time complexity of that approach?",
-    },
-    {
-      speaker: "user" as const,
-      timestamp: "01:28",
-      text: "It would be O(n) since we only need to iterate through the array once.",
-    },
-    {
-      speaker: "interviewer" as const,
-      timestamp: "01:45",
-      text: "That's correct. Can you implement this solution?",
-    },
-    {
-      speaker: "user" as const,
-      timestamp: "02:03",
-      text: "Sure, let me start by creating a hash map to store the values and their indices...",
-    },
-  ];
+  // Convert Vapi transcript to TranscriptPanel format
+  const transcriptMessages = transcript
+    .filter((segment) => segment.type === "transcript" && segment.text)
+    .map((segment) => ({
+      speaker:
+        segment.role === "assistant"
+          ? ("interviewer" as const)
+          : ("user" as const),
+      timestamp: new Date(segment.timestamp).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      text: segment.text || "",
+    }));
 
   useEffect(() => {
     setMounted(true);
@@ -120,6 +109,25 @@ export default function InterviewPage() {
     fetchProblem();
   }, []);
 
+  // Start Vapi call when component mounts
+  useEffect(() => {
+    const initCall = async () => {
+      try {
+        await startCall();
+      } catch (err) {
+        console.error("Failed to start interview call:", err);
+      }
+    };
+    initCall();
+
+    // Cleanup: end call when component unmounts
+    return () => {
+      if (isCallActive) {
+        endCall();
+      }
+    };
+  }, [startCall, endCall, isCallActive]);
+
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeInSeconds((prev) => prev - 1);
@@ -137,6 +145,13 @@ export default function InterviewPage() {
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  };
+
+  const handleEndInterview = () => {
+    if (isCallActive) {
+      endCall();
+    }
+    router.push("/score");
   };
 
   return (
@@ -216,7 +231,7 @@ export default function InterviewPage() {
               <Button
                 size="sm"
                 variant="destructive"
-                onClick={() => setShowEndDialog(true)}
+                onClick={handleEndInterview}
               >
                 End Interview
               </Button>
@@ -265,42 +280,16 @@ export default function InterviewPage() {
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
-              <TranscriptPanel messages={tempTranscriptMessages} />
+              <TranscriptPanel messages={transcriptMessages} />
+              {vapiError && (
+                <div className="px-6 py-2 text-xs text-red-500 border-t border-border/50">
+                  {vapiError}
+                </div>
+              )}
             </>
           )}
         </div>
       </div>
-
-      {showEndDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-background rounded-lg p-6 max-w-md w-full mx-4 border border-border/50">
-            <h3 className="text-lg font-semibold mb-2">End Interview?</h3>
-            <p className="text-sm text-muted-foreground mb-6">
-              Are you sure you want to end the interview? Your progress will not
-              be saved.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setShowEndDialog(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={() => {
-                  setShowEndDialog(false);
-                  router.push("/practice");
-                }}
-              >
-                End Interview
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
