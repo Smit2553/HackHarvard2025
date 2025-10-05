@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import InfoPanel from "@/components/InfoPanel";
 import Editor from "@/components/Editor";
 import TranscriptPanel from "@/components/TranscriptPanel";
 import { Button } from "@/components/ui/button";
 import { useVapi } from "@/components/VapiProvider";
+import { useDebounce } from "@/hooks/useDebounce";
 import {
   Select,
   SelectContent,
@@ -53,6 +54,8 @@ export default function InterviewPage() {
     startCall,
     endCall,
     isCallActive,
+    isSpeaking,
+    sendCodeContext,
     transcript,
     error: vapiError,
   } = useVapi();
@@ -65,6 +68,12 @@ export default function InterviewPage() {
   const [mounted, setMounted] = useState(false);
   const [language, setLanguage] = useState("python");
   const { resolvedTheme, setTheme } = useTheme();
+
+  // Code editor state
+  const [editorCode, setEditorCode] = useState<string>("");
+  const debouncedCode = useDebounce(editorCode, 2000); // 2-second debounce
+  const lastSentCodeRef = useRef<string>("");
+  const hasInitialCodeBeenSent = useRef(false);
 
   // Convert Vapi transcript to TranscriptPanel format
   const transcriptMessages = transcript
@@ -109,6 +118,33 @@ export default function InterviewPage() {
     fetchProblem();
   }, []);
 
+  // Effect: Send initial starter code when call starts
+  useEffect(() => {
+    if (isCallActive && problemData && !hasInitialCodeBeenSent.current) {
+      // Wait 1 second for call to fully establish
+      setTimeout(() => {
+        console.log('📤 Sending initial starter code');
+        sendCodeContext(problemData.starter_code, language, problemData.title);
+        lastSentCodeRef.current = problemData.starter_code;
+        hasInitialCodeBeenSent.current = true;
+      }, 1000);
+    }
+  }, [isCallActive, problemData, language, sendCodeContext]);
+
+  // Effect: Send code updates when user stops typing (debounced)
+  useEffect(() => {
+    if (!isCallActive || !problemData || !debouncedCode) return;
+    
+    // Don't send if assistant is speaking or code hasn't changed
+    if (isSpeaking || debouncedCode === lastSentCodeRef.current) {
+      return;
+    }
+
+    console.log('📤 Sending code update (typing paused)');
+    sendCodeContext(debouncedCode, language, problemData.title);
+    lastSentCodeRef.current = debouncedCode;
+  }, [debouncedCode, isCallActive, isSpeaking, problemData, language, sendCodeContext]);
+
   // Start Vapi call when component mounts
   useEffect(() => {
     const initCall = async () => {
@@ -141,6 +177,14 @@ export default function InterviewPage() {
     const mins = Math.floor(absSeconds / 60);
     const secs = absSeconds % 60;
     return `${isNegative ? "+" : ""}${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  /**
+   * Handle editor code changes
+   */
+  const handleCodeChange = (value: string | undefined) => {
+    const currentCode = value || "";
+    setEditorCode(currentCode);
   };
 
   const toggleTheme = () => {
@@ -248,6 +292,7 @@ export default function InterviewPage() {
               <Editor
                 language={language}
                 defaultValue={problemData.starter_code}
+                onChange={handleCodeChange}
               />
             ) : (
               <div className="h-full flex items-center justify-center">

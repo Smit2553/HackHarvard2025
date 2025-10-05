@@ -32,6 +32,7 @@ interface VapiContextType {
   isSpeaking: boolean;
   startCall: () => Promise<void>;
   endCall: () => void;
+  sendCodeContext: (code: string, language: string, problem: string) => void;
   error: string | null;
   transcript: TranscriptSegment[];
 }
@@ -171,6 +172,47 @@ export function VapiProvider({ children }: { children: ReactNode }) {
     }
   }, [vapi]);
 
+  /**
+   * Send code context using Vapi metadata (invisible to conversation)
+   * Metadata is accessible to AI but doesn't appear in chat transcript
+   */
+  const sendCodeContext = useCallback((code: string, language: string, problem: string) => {
+    if (!vapi || !isCallActive) {
+      console.log('⚠️  Cannot send code: Call not active');
+      return;
+    }
+
+    try {
+      console.log('📤 Sending code context via metadata');
+      console.log(`   Problem: ${problem}`);
+      console.log(`   Language: ${language}`);
+      console.log(`   Code length: ${code.length} chars`);
+
+      // Use metadata approach - keeps code completely separate from conversation
+      // TypeScript doesn't recognize metadata field, so we cast to any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (vapi as any).send({
+        type: "add-message",
+        message: {
+          role: "system",
+          content: "Code context updated"
+        },
+        metadata: {
+          type: "code_update",
+          problem: problem,
+          language: language,
+          code: code,
+          lines: code.split('\n').length,
+          timestamp: new Date().toISOString()
+        }
+      });
+
+      console.log('✅ Code context sent via metadata');
+    } catch (error) {
+      console.error('❌ Failed to send code context:', error);
+    }
+  }, [vapi, isCallActive]);
+
   return (
     <VapiContext.Provider
       value={{
@@ -179,6 +221,7 @@ export function VapiProvider({ children }: { children: ReactNode }) {
         isSpeaking,
         startCall,
         endCall,
+        sendCodeContext,
         error,
         transcript,
       }}
