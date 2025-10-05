@@ -38,6 +38,15 @@ class TranscriptRating(BaseModel):
     strengths: List[str] = Field(description="List of 2-3 key strengths demonstrated")
 
 
+class ImprovementPoints(BaseModel):
+    """Structured improvement points response from Gemini"""
+    points: List[str] = Field(
+        description="List of 3 specific and actionable improvement points for the candidate.",
+        min_items=3,
+        max_items=3
+    )
+
+
 class GeminiRatingService:
     """Service to rate interview transcripts using Gemini AI"""
     
@@ -96,7 +105,50 @@ class GeminiRatingService:
                 formatted.append(f"[{seconds:6.1f}s] {speaker}: {text}")
         
         return "\n".join(formatted)
-    
+
+    def generate_improvement_points(self, transcript: List[dict], metadata: Optional[dict] = None) -> ImprovementPoints:
+        """
+        Generate 3 improvement points for an interview transcript using Gemini AI.
+        
+        Args:
+            transcript: List of transcript segments from the interview
+            metadata: Optional metadata about the interview
+            
+        Returns:
+            ImprovementPoints object with a list of suggestions.
+        """
+        formatted_transcript = self.format_transcript_for_rating(transcript, metadata)
+        
+        prompt = f"""You are an expert technical interviewer providing feedback on a coding interview.
+Based on the following transcript, provide exactly three specific and actionable improvement points for the candidate.
+Focus on areas where they could have performed better in communication, problem-solving, or implementation.
+
+{formatted_transcript}
+
+Return a list of three strings, each being a concrete suggestion for improvement."""
+
+        try:
+            # Call Gemini API with structured output
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=prompt,
+                config={
+                    'response_mime_type': 'application/json',
+                    'response_schema': ImprovementPoints,
+                }
+            )
+            
+            # Parse the response
+            import json
+            if not response.text:
+                raise ValueError("Empty response from Gemini API for improvement points")
+            improvement_data = json.loads(response.text)
+            return ImprovementPoints(**improvement_data)
+            
+        except Exception as e:
+            print(f"Error generating improvement points with Gemini: {str(e)}")
+            raise
+
     def rate_transcript(self, transcript: List[dict], metadata: Optional[dict] = None) -> TranscriptRating:
         """
         Rate an interview transcript using Gemini AI.

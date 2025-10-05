@@ -77,7 +77,9 @@ export default function ScoreOverviewPage() {
   const transcriptId = params?.id?.[0];
 
   const [transcript, setTranscript] = useState<Transcript | null>(null);
+  const [improvements, setImprovements] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingImprovements, setLoadingImprovements] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -106,6 +108,32 @@ export default function ScoreOverviewPage() {
     fetchTranscript();
   }, [transcriptId]);
 
+  useEffect(() => {
+    if (!transcriptId) return;
+
+    const fetchImprovements = async () => {
+      try {
+        setLoadingImprovements(true);
+        const response = await fetch(
+          `https://harvardapi.codestacx.com/api/transcript/${transcriptId}/improvements`,
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch improvement points");
+        }
+        const data = await response.json();
+        setImprovements(data.points || []);
+      } catch (err) {
+        console.error("Error fetching improvements:", err);
+        // Gracefully fail by showing no improvements
+        setImprovements([]);
+      } finally {
+        setLoadingImprovements(false);
+      }
+    };
+
+    fetchImprovements();
+  }, [transcriptId]);
+
   // Extract scores from ratings or use defaults
   const scores = transcript?.ratings
     ? {
@@ -121,27 +149,6 @@ export default function ScoreOverviewPage() {
 
   // Extract strengths from ratings
   const strengths = transcript?.ratings?.strengths || [];
-
-  // Generate improvement suggestions from feedback
-  const improvements = transcript?.ratings
-    ? [
-        {
-          title: "Communication",
-          description: transcript.ratings.communication_feedback,
-          priority: scores.communication < 80 ? "high" : "medium",
-        },
-        {
-          title: "Problem Solving",
-          description: transcript.ratings.problem_solving_feedback,
-          priority: scores.problemSolving < 80 ? "high" : "medium",
-        },
-        {
-          title: "Implementation",
-          description: transcript.ratings.implementation_feedback,
-          priority: scores.implementation < 80 ? "high" : "medium",
-        },
-      ]
-    : [];
 
   const average = Math.round(
     (scores.communication + scores.problemSolving + scores.implementation) / 3,
@@ -416,41 +423,29 @@ export default function ScoreOverviewPage() {
           {/* Next Steps */}
           <section className="mb-20">
             <h2 className="text-2xl font-semibold mb-8">Detailed Feedback</h2>
-            {improvements.length > 0 ? (
+            {loadingImprovements ? (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-foreground"></div>
+                  <p className="text-muted-foreground mt-4">
+                    Generating actionable feedback...
+                  </p>
+                </CardContent>
+              </Card>
+            ) : improvements.length > 0 ? (
               <div className="space-y-4">
-                {improvements.map((improvement, i) => (
-                  <Card
-                    key={i}
-                    className={
-                      improvement.priority === "high"
-                        ? "border-orange-500/20"
-                        : ""
-                    }
-                  >
+                {improvements.map((point, i) => (
+                  <Card key={i}>
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        <div
-                          className={`p-2 rounded-lg ${
-                            improvement.priority === "high"
-                              ? "bg-orange-500/10"
-                              : "bg-muted"
-                          }`}
-                        >
+                        <div className="p-2 rounded-lg bg-muted">
                           <Target className="w-4 h-4" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-medium mb-2">
-                            {improvement.title}
-                          </h3>
                           <p className="text-sm text-muted-foreground">
-                            {improvement.description}
+                            {point}
                           </p>
                         </div>
-                        {improvement.priority === "high" && (
-                          <span className="text-xs px-2 py-1 rounded-md bg-orange-500/10 text-orange-600 dark:text-orange-400">
-                            High priority
-                          </span>
-                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -460,7 +455,7 @@ export default function ScoreOverviewPage() {
               <Card>
                 <CardContent className="p-6 text-center">
                   <p className="text-muted-foreground">
-                    Complete an interview to receive personalized feedback
+                    No specific improvement points were generated for this session.
                   </p>
                 </CardContent>
               </Card>

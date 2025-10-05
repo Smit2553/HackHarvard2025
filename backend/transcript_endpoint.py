@@ -286,3 +286,32 @@ async def delete_transcript(transcript_id: int):
 async def transcript_health():
     """Health check for transcript endpoint"""
     return {"status": "healthy", "endpoint": "transcript"}
+
+
+@router.get("/api/transcript/{transcript_id}/improvements")
+async def get_improvement_points(transcript_id: int):
+    """
+    GET endpoint to generate and retrieve 3 improvement points for a specific transcript.
+    """
+    try:
+        # Retrieve the transcript from the database
+        transcript_data = database.get_transcript(transcript_id)
+        if not transcript_data:
+            raise HTTPException(status_code=404, detail=f"Transcript with ID {transcript_id} not found")
+
+        # Initialize the Gemini service
+        rating_service = get_rating_service()
+
+        # Generate improvement points
+        improvement_points = rating_service.generate_improvement_points(
+            transcript=transcript_data['transcript'],
+            metadata=transcript_data.get('metadata')
+        )
+
+        return improvement_points.dict()
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error generating improvement points for transcript {transcript_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error generating improvement points: {str(e)}")
