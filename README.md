@@ -1,329 +1,286 @@
-# 🎯 HackHarvard 2025 - AI Mock Interview Platform
+# Offscript
 
-> **Bridge the gap between LeetCode success and interview confidence.**
+> *Voice-based technical interview simulator powered by AI*
 
-Practice technical interviews with Oscar, an AI interviewer that simulates real interview pressure through voice interaction while you code.
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://offscript.codestacx.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Built at HackHarvard 2025](https://img.shields.io/badge/Built%20at-HackHarvard%202025-red)](https://hackharvard.io/)
 
----
-
-## 🌟 What Makes This Different?
-
-Most students can solve LeetCode problems silently but **freeze up when explaining their approach**. We provide:
-
-- ✅ **Voice-First Practice** - Real-time conversation with AI interviewer
-- ✅ **Natural Code Sync** - AI sees your code invisibly (no awkward notifications)
-- ✅ **Real Interview Pressure** - Timed sessions, hints on request, performance ratings
-- ✅ **Multi-User Ready** - Deploy on Devpost, handle concurrent users seamlessly
+🔗 **[Try it Live](https://offscript.codestacx.com/)**
 
 ---
 
-## 🚀 Quick Start
+## Introduction
 
-### **Option 1: Try It Now (Dev Server)**
+The idea for **Offscript** came from a painful realization: talented engineers were failing interviews not because they couldn't solve problems, but because they couldn't explain their solutions. Traditional coding practice platforms like LeetCode train you to write code, but they don't prepare you for the most critical part of the interview — *the conversation*.
 
-Visit the live dev environment: _(Ask team for URL)_
+Offscript bridges that gap. It's a voice-based technical interview simulator that helps engineers practice real interview scenarios through live conversation. By integrating voice AI, real-time code analysis, and intelligent feedback, Offscript creates a realistic interview environment where you can practice explaining your thought process, defending your approach, and thinking out loud — just like in a real interview.
 
-### **Option 2: Run Locally (5 Minutes)**
+## ✨ Features
 
+- **🎙️ Voice-First Interviewing** - Practice explaining your approach naturally through conversation, powered by Vapi AI
+- **💻 Live Code Editor** - Write code in real-time with syntax highlighting and multi-language support (Python, JavaScript, Java, C++, Go)
+- **🤖 AI-Powered Feedback** - Get detailed performance ratings on communication, problem-solving, and implementation using Google Gemini
+- **📊 Structured Evaluation** - Receive letter grades (A+ to F) across three key categories with actionable feedback
+- **📝 Full Transcript Recording** - Review complete conversation transcripts with timestamps
+- **🎯 Real LeetCode Problems** - Practice with authentic coding challenges covering arrays, strings, trees, and linked lists
+- **⏱️ Interview Timer** - Built-in 45-minute timer to simulate real interview time constraints
+- **🌓 Dark/Light Mode** - Comfortable coding interface with theme support
+- **📱 Responsive Design** - Optimized desktop experience for focused practice
+
+## 🏗️ Architecture Overview
+
+Offscript is built as a modern full-stack application with separate frontend and backend services:
+
+### Frontend (Next.js)
+- **Framework**: Next.js 15 with React 19 and TypeScript
+- **UI Components**: shadcn/ui with Tailwind CSS for beautiful, accessible interfaces
+- **Code Editor**: Monaco Editor (VS Code's editor) for professional code editing experience
+- **Voice Integration**: Vapi AI Web SDK for real-time voice communication
+- **State Management**: React hooks and context for managing interview state
+- **Routing**: Next.js App Router for seamless navigation
+
+### Backend (FastAPI)
+- **Framework**: FastAPI for high-performance Python API
+- **Database**: SQLite for storing interview transcripts and ratings
+- **AI Integration**: 
+  - **Vapi AI**: Handles voice-to-text conversion and natural language processing
+  - **Google Gemini 2.5**: Powers intelligent transcript analysis and grading
+- **Endpoints**:
+  - `/api/leetcode` - Serves random coding problems with solutions
+  - `/api/vapi_webhook` - Receives real-time voice data during interviews
+  - `/api/transcript` - Stores and retrieves interview transcripts
+  - `/api/rate` - Generates AI-powered performance ratings
+
+### Data Flow
+```
+User Voice → Vapi AI → Backend Webhook → Real-time Transcript
+                           ↓
+User Code → Monaco Editor → Code Context → AI Interviewer
+                           ↓
+Interview End → Transcript Storage → Gemini AI Analysis → Performance Report
+```
+
+## 🛠️ Tech Stack
+
+### Frontend
+- **[Next.js 15](https://nextjs.org/)** - React framework with App Router
+- **[React 19](https://react.dev/)** - UI library
+- **[TypeScript](https://www.typescriptlang.org/)** - Type-safe development
+- **[Tailwind CSS 4](https://tailwindcss.com/)** - Utility-first styling
+- **[shadcn/ui](https://ui.shadcn.com/)** - Component library
+- **[Monaco Editor](https://microsoft.github.io/monaco-editor/)** - Code editor
+- **[Vapi AI Web SDK](https://vapi.ai/)** - Voice AI integration
+- **[Lucide React](https://lucide.dev/)** - Icon library
+- **[next-themes](https://github.com/pacocoursey/next-themes)** - Theme management
+
+### Backend
+- **[FastAPI](https://fastapi.tiangolo.com/)** - Modern Python web framework
+- **[Google Gemini AI](https://ai.google.dev/)** - Advanced language model for analysis
+- **[SQLite](https://www.sqlite.org/)** - Lightweight database
+- **[Pydantic](https://pydantic-docs.helpmanual.io/)** - Data validation
+- **[Uvicorn](https://www.uvicorn.org/)** - ASGI server
+- **[python-dotenv](https://pypi.org/project/python-dotenv/)** - Environment management
+
+## 🚀 Installation and Setup
+
+### Prerequisites
+- **Node.js** 20+ and npm/yarn
+- **Python** 3.11+
+- **Vapi AI Account** - [Sign up here](https://vapi.ai/)
+- **Google Gemini API Key** - [Get it here](https://makersuite.google.com/app/apikey)
+
+### Backend Setup
+
+1. **Navigate to the backend directory**
+   ```bash
+   cd backend
+   ```
+
+2. **Create a virtual environment**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Create `.env` file**
+   ```bash
+   touch .env
+   ```
+
+5. **Add your environment variables**
+   ```env
+   GEMINI_API_KEY=your_gemini_api_key_here
+   ```
+
+6. **Run the backend server**
+   ```bash
+   uvicorn main:app --reload --host 0.0.0.0 --port 8000
+   ```
+
+   The backend will be available at `http://localhost:8000`
+
+### Frontend Setup
+
+1. **Navigate to the frontend directory**
+   ```bash
+   cd frontend
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Create `.env.local` file**
+   ```bash
+   touch .env.local
+   ```
+
+4. **Add your environment variables**
+   ```env
+   NEXT_PUBLIC_VAPI_ASSISTANT_ID=your_vapi_assistant_id
+   NEXT_PUBLIC_VAPI_PUBLIC_KEY=your_vapi_public_key
+   ```
+
+5. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+
+   The frontend will be available at `http://localhost:3000`
+
+### Building for Production
+
+**Frontend:**
 ```bash
-# 1. Clone repo
-git clone https://github.com/Smit2553/HackHarvard2025.git
-cd HackHarvard2025
-
-# 2. Frontend setup
 cd frontend
-npm install
-cp .env.example .env.local  # Add your Vapi keys
-npm run dev  # → http://localhost:3000
+npm run build
+npm start
+```
 
-# 3. Backend setup (separate terminal)
+**Backend:**
+```bash
 cd backend
-pip install -r requirements.txt
-cp .env.example .env  # Add your Gemini API key
-uvicorn main:app --reload  # → http://localhost:8000
+uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-**Get API Keys:**
+## 📖 Usage Instructions
 
-- [Vapi.ai](https://vapi.ai) - Voice AI (free tier available)
-- [Google AI Studio](https://ai.google.dev/) - Gemini API (free tier)
+### Starting an Interview
 
----
+1. **Visit the Homepage** - Navigate to `http://localhost:3000` or [offscript.codestacx.com](https://offscript.codestacx.com/)
 
-## 📚 Documentation
+2. **Click "Start Practicing"** - Choose your practice path
 
-| Document                                                   | Purpose                | Audience                |
-| ---------------------------------------------------------- | ---------------------- | ----------------------- |
-| **[QUICK_START.md](./QUICK_START.md)**                     | 5-minute setup guide   | New developers          |
-| **[PRODUCT_DOCUMENTATION.md](./PRODUCT_DOCUMENTATION.md)** | Complete product specs | Product team, investors |
-| **[ARCHITECTURE.md](./ARCHITECTURE.md)**                   | Technical deep dive    | Engineers, architects   |
+3. **Grant Microphone Permission** - Allow browser access to your microphone
 
----
+4. **Click "Start Interview"** - The AI interviewer will begin
 
-## 🎬 Demo Flow
+### During the Interview
 
-1. **Landing Page** (`/`) - Hero, features, FAQs
-2. **Problem Selection** (`/practice`) - Choose interview problem _(WIP)_
-3. **Start Interview** (`/start`) - Launch voice call with Oscar
-4. **Interview Session** (`/interview`) - Code + talk simultaneously
-   - Oscar introduces problem via voice
-   - You explain approach while typing
-   - Oscar asks clarifying questions, provides hints
-   - Code automatically syncs to AI (invisible)
-5. **End Call** - Transcript analyzed by Gemini, rating generated
+- **Speak naturally** - Explain your thought process as you would in a real interview
+- **Write code** - Use the Monaco editor to implement your solution
+- **Ask questions** - The AI interviewer responds to clarifying questions
+- **Track time** - Keep an eye on the 45-minute countdown timer
+- **Review transcript** - See real-time transcription of the conversation
 
----
+### Ending the Interview
 
-## 🏗️ Tech Stack
+1. **Click "End Interview"** - Confirm you want to finish
 
-### **Frontend**
+2. **Wait for Analysis** - Gemini AI processes your transcript (takes ~10-20 seconds)
 
-- **Framework:** Next.js 15 + React 19 + TypeScript
-- **Voice AI:** Vapi.ai (WebRTC + custom assistant)
-- **Editor:** Monaco Editor (VS Code engine)
-- **Styling:** Tailwind CSS + shadcn/ui
-- **Hosting:** Vercel (recommended)
+3. **Review Feedback** - Get detailed grades and suggestions:
+   - **Communication Grade** - How clearly you explained your approach
+   - **Problem-Solving Grade** - Your analytical and algorithmic thinking
+   - **Implementation Grade** - Code quality and correctness
+   - **Overall Assessment** - Key strengths and 3 improvement points
 
-### **Backend**
+## 🎯 Key Challenges and Solutions
 
-- **Framework:** FastAPI (Python)
-- **AI Analysis:** Gemini API (transcript rating)
-- **Database:** SQLite (dev) → PostgreSQL (prod)
-- **Hosting:** German server (current) → Railway/Render (recommended)
+### Challenge 1: Real-Time Voice Synchronization
+**Problem**: Keeping the voice conversation synchronized with code changes without lag.
+**Solution**: Implemented debounced code context updates and WebSocket-based communication through Vapi AI's SDK, ensuring smooth real-time interaction without overwhelming the backend.
 
----
+### Challenge 2: Intelligent Feedback Generation
+**Problem**: Providing meaningful, specific feedback that goes beyond generic advice.
+**Solution**: Engineered detailed prompts for Gemini AI with structured output schemas (Pydantic models), ensuring consistent, actionable feedback across three evaluation dimensions with letter grades and specific examples.
 
-## ⚡ Key Features
+### Challenge 3: Natural Conversation Flow
+**Problem**: Making the AI interviewer feel like a real person, not a robotic questioner.
+**Solution**: Integrated Vapi AI's conversational AI capabilities with custom assistant configuration, allowing for natural follow-up questions, clarifications, and adaptive responses based on candidate input.
 
-### **1. Invisible Code Synchronization**
+### Challenge 4: Database Architecture for Transcripts
+**Problem**: Storing complex interview data (transcripts, metadata, ratings) efficiently.
+**Solution**: Designed a SQLite schema with JSON serialization for flexible transcript storage, supporting both raw conversation data and structured evaluation results with timestamps.
 
-Your code is sent to the AI via **metadata** (not conversation messages):
+## 🏆 Accomplishments and Learnings
 
-- AI can reference your code naturally
-- No "thanks for the code" interruptions
-- Debounced (2s delay) to avoid spam
-- Pauses when AI is speaking
+### What We're Proud Of
+- **Seamless Voice Integration** - Built a production-ready voice interview system in 48 hours
+- **AI-Powered Analysis** - Created an intelligent evaluation system that provides genuinely helpful feedback
+- **Developer Experience** - Crafted a polished, professional interface that engineers actually want to use
+- **End-to-End Solution** - Delivered a complete product from voice input to detailed performance reports
 
-### **2. Multi-User Session Isolation**
+### What We Learned
+- **Voice AI Complexity** - Working with real-time voice requires careful state management and error handling
+- **Prompt Engineering** - Structured outputs from LLMs need precise prompt design and schema definition
+- **Full-Stack Integration** - Coordinating TypeScript/React frontend with Python/FastAPI backend taught us valuable lessons about API design
+- **User-Centric Design** - Interview practice is deeply personal — the UI must be calming and focused, not distracting
 
-Each browser tab gets a unique session ID:
+## 🗺️ Roadmap / What's Next
 
-- Works for Devpost demos (100+ concurrent users)
-- No server-side session management needed
-- SessionStorage-based (tab-specific)
+### Near Term (Next 3 Months)
+- **Company-Specific Modes** - Practice interviews styled after Google, Meta, Amazon, etc.
+- **Video Recording** - Record yourself for body language analysis
+- **Progress Tracking** - Dashboard showing improvement over time
+- **Custom Problems** - Allow users to upload their own coding challenges
 
-### **3. Performance Analytics** _(Backend Complete)_
-
-After each interview:
-
-- Gemini analyzes transcript quality
-- Generates ratings (communication, problem-solving, code quality)
-- Stores in database for historical tracking
-
-### **4. Smart Problem Database**
-
-Current: 5 hardcoded LeetCode problems  
-**In Progress:** URL scraper to fetch any LeetCode problem
-
----
-
-## 📂 Project Structure
-
-```
-HackHarvard2025/
-├── frontend/
-│   ├── app/
-│   │   ├── page.tsx                 # Landing page
-│   │   ├── interview/page.tsx       # Main interview UI ⭐
-│   │   └── start/page.tsx           # Interview launcher
-│   ├── components/
-│   │   ├── VapiProvider.tsx         # Voice AI context ⭐
-│   │   ├── Editor.tsx               # Monaco code editor
-│   │   └── TranscriptPanel.tsx      # Live conversation log
-│   └── lib/
-│       └── sessionId.ts             # Multi-user isolation
-│
-├── backend/
-│   ├── main.py                      # FastAPI app
-│   ├── leetcode_endpoint.py         # Problem database ⭐
-│   ├── transcript_endpoint.py       # Gemini analysis ⭐
-│   └── vapi_endpoint.py             # Vapi webhooks
-│
-├── PRODUCT_DOCUMENTATION.md         # Complete product specs
-├── ARCHITECTURE.md                  # Technical architecture
-└── QUICK_START.md                   # Developer guide
-```
-
----
-
-## 🎯 Roadmap
-
-### **Phase 1: Core Product** ✅ _Complete_
-
-- [x] Voice interview with AI (Oscar)
-- [x] Monaco code editor integration
-- [x] Invisible code sync via metadata
-- [x] Multi-user session isolation
-- [x] Transcript analysis + rating
-
-### **Phase 2: Enhanced Problems** 🚧 _In Progress_
-
-- [ ] LeetCode URL scraper
-- [ ] Problem selection UI
-- [ ] Multi-language support (JS, Java, C++)
-- [ ] User authentication
-
-### **Phase 3: Multi-Agent System** 📋 _Planned_
-
-- [ ] Different interviewer personas (friendly, strict, silent)
-- [ ] Company-specific styles (Google, Amazon, Meta)
-- [ ] Role-specific scenarios (frontend, backend, ML)
-
-### **Phase 4: Advanced Features** 🔮 _Future_
-
-- [ ] System design interview mode
-- [ ] Behavioral interview practice
-- [ ] Performance dashboard
-- [ ] Mock interview marketplace
-
----
-
-## 🧪 Testing Multi-User Support
-
-**Before Devpost deployment:**
-
-```bash
-# Open 3 browser tabs to localhost:3000
-# Start interview in each tab
-# Check console logs:
-
-Tab 1: Session: session-1728123456-abc123
-Tab 2: Session: session-1728123456-def456
-Tab 3: Session: session-1728123456-ghi789
-
-# Each should have unique session ID ✓
-# Each AI should only see that tab's code ✓
-```
-
----
-
-## 🚀 Deployment
-
-### **Frontend → Vercel (Recommended)**
-
-```bash
-cd frontend
-vercel --prod
-
-# Add environment variables in Vercel dashboard:
-# - NEXT_PUBLIC_VAPI_PUBLIC_KEY
-# - NEXT_PUBLIC_VAPI_ASSISTANT_ID
-```
-
-### **Backend → Railway/Render**
-
-```bash
-railway up
-# or
-render deploy
-
-# Add environment variable:
-# - GEMINI_API_KEY
-```
-
-**Expected Performance:**
-
-- ✅ Handles 100+ concurrent users
-- ✅ < 3s voice call connection time
-- ✅ < 2s code editor load time
-- ✅ Global CDN (fast worldwide)
-
----
+### Future Vision
+- **Behavioral Interview Practice** - Expand beyond technical to STAR-method behavioral questions
+- **System Design Interviews** - Voice-guided architecture discussions with diagramming
+- **Mock Interview Matching** - Connect users for peer-to-peer practice sessions
+- **Mobile App** - iOS/Android apps for practice on the go
+- **Multi-Language Support** - Interface and AI interviewer in multiple languages
 
 ## 🤝 Contributing
 
-### **Current Team**
+We welcome contributions! Here's how you can help:
 
-- GitHub: [Smit2553](https://github.com/Smit2553)
-- Branch: `vapi-service` (voice features)
-- PR #20: Invisible code sync implementation
+1. **Fork the repository**
+2. **Create a feature branch** (`git checkout -b feature/amazing-feature`)
+3. **Commit your changes** (`git commit -m 'Add amazing feature'`)
+4. **Push to the branch** (`git push origin feature/amazing-feature`)
+5. **Open a Pull Request**
 
-### **Development Workflow**
+Please ensure your code follows the existing style and includes appropriate tests.
 
-```bash
-# 1. Create feature branch
-git checkout -b feature/your-feature
+### Development Guidelines
+- Follow TypeScript/Python best practices
+- Write clear commit messages
+- Update documentation for new features
+- Test voice features manually before submitting
 
-# 2. Make changes
-# ... code ...
+## 📄 License
 
-# 3. Commit with descriptive message
-git commit -m "feat: Add feature description"
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-# 4. Push and create PR
-git push origin feature/your-feature
-```
+## 🙏 Acknowledgements
 
----
-
-## 📊 Current Stats
-
-- **Problems Available:** 5 (Two Sum, Valid Parentheses, etc.)
-- **Languages Supported:** Python (primary)
-- **Interview Duration:** 45 minutes (soft limit)
-- **Multi-User Capacity:** Unlimited (stateless architecture)
-- **Production Status:** Ready for Devpost deployment ✅
+- **HackHarvard 2025** - For providing the platform and inspiration
+- **Vapi AI** - For powerful voice AI infrastructure
+- **Google Gemini** - For intelligent transcript analysis
+- **Vercel** - For seamless frontend deployment
+- **All Open Source Contributors** - For the amazing tools that made this possible
 
 ---
 
-## 🐛 Known Issues
+**Built with ❤️ by the Offscript Team at HackHarvard 2025**
 
-- ⚠️ Problem selection UI incomplete (only companies page)
-- ⚠️ Single user account (dummy auth)
-- ⚠️ Python-only starter code
-- ⚠️ No pause/resume functionality
-
-_See [PRODUCT_DOCUMENTATION.md](./PRODUCT_DOCUMENTATION.md) for full list._
-
----
-
-## 📝 License
-
-MIT License - See [LICENSE](./LICENSE) for details.
-
----
-
-## 🆘 Need Help?
-
-### **Quick References**
-
-- **Setup Issues:** [QUICK_START.md](./QUICK_START.md)
-- **Product Questions:** [PRODUCT_DOCUMENTATION.md](./PRODUCT_DOCUMENTATION.md)
-- **Technical Details:** [ARCHITECTURE.md](./ARCHITECTURE.md)
-
-### **External Resources**
-
-- [Vapi.ai Docs](https://docs.vapi.ai) - Voice AI integration
-- [Monaco Editor API](https://microsoft.github.io/monaco-editor/) - Code editor
-- [Next.js Docs](https://nextjs.org/docs) - Framework guide
-
----
-
-## 🎉 Acknowledgments
-
-Built for **HackHarvard 2025** with:
-
-- [Vapi.ai](https://vapi.ai) - Voice AI platform
-- [Google Gemini](https://ai.google.dev/) - Transcript analysis
-- [Vercel](https://vercel.com) - Hosting platform
-- [Monaco Editor](https://microsoft.github.io/monaco-editor/) - Code editor
-
----
-
-<div align="center">
-
-**[Try Demo](your-demo-url) • [Documentation](./PRODUCT_DOCUMENTATION.md) • [Report Bug](https://github.com/Smit2553/HackHarvard2025/issues)**
-
-Made with ❤️ by the HackHarvard 2025 Team
-
-</div>
+*Questions or feedback? Open an issue or reach out!*
