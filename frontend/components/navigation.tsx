@@ -19,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LoginDialog } from "@/components/login";
 
 // User type definition
 interface User {
@@ -28,11 +29,11 @@ interface User {
 }
 
 // Dummy user data
-const DUMMY_USER: User = {
-  email: "john.doe@example.com",
-  name: "John Doe",
-  avatar: "https://github.com/soradotwav.png",
-};
+//const DUMMY_USER: User = {
+//  email: "john.doe@example.com",
+//  name: "John Doe",
+//  avatar: "https://github.com/soradotwav.png",
+//};
 
 // Storage keys
 const AUTH_STORAGE_KEY = "offscript_auth";
@@ -40,6 +41,7 @@ const AUTH_STORAGE_KEY = "offscript_auth";
 export function Navigation() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { setTheme, resolvedTheme } = useTheme();
 
@@ -86,9 +88,10 @@ export function Navigation() {
 
   // Fake login function - automatically logs into dummy user
   const handleLogin = () => {
-    setIsLoggedIn(true);
-    setUser(DUMMY_USER);
-    console.log("Logged in as:", DUMMY_USER.name);
+    //setIsLoggedIn(true);
+    //setUser(DUMMY_USER);
+    //console.log("Logged in as:", DUMMY_USER.name)
+    setShowLoginDialog(true);
   };
 
   // Logout function
@@ -337,6 +340,7 @@ export function Navigation() {
           </motion.div>
         )}
       </AnimatePresence>
+      <LoginDialog open={showLoginDialog} onOpenChange={setShowLoginDialog} />
     </header>
   );
 }
