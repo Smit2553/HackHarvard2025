@@ -25,9 +25,9 @@ export function AboutStep({
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-semibold">What's your name?</h1>
+        <h1 className="text-2xl font-semibold">What&#39;s your name?</h1>
         <p className="text-sm text-muted-foreground">
-          We'll use this in your sessions
+          We&#39;ll use this in your sessions
         </p>
       </div>
 

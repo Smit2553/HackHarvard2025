@@ -34,7 +34,7 @@ export function ExperienceStep({
       <div className="text-center space-y-2">
         <h1 className="text-2xl font-semibold">Experience level</h1>
         <p className="text-sm text-muted-foreground">
-          We'll match the difficulty
+          We&#39;ll match the difficulty
         </p>
       </div>
 
