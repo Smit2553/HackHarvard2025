@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import InfoPanel from "@/components/InfoPanel";
 import Editor from "@/components/Editor";
 import TranscriptPanel from "@/components/TranscriptPanel";
@@ -38,19 +38,37 @@ interface LeetCodeProblem {
   title: string;
   type: string;
   description: string;
-  example_test_case: {
+  example_test_case?: {
     input: string;
     output: string;
     explanation: string;
   };
-  expected_solution: string;
-  starter_code: string;
-  solutions: Array<{
+  details?: {
+    examples: Array<{
+      input: string;
+      output: string;
+      explanation: string;
+    }>;
+    constraints: string[];
+  };
+  expected_solution?: string;
+  starter_code?: string;
+  starter_codes?: {
+    python?: string;
+    javascript?: string;
+    java?: string;
+    cpp?: string;
+    go?: string;
+    rust?: string;
+  };
+  solutions?: Array<{
     approach: string;
     code: string;
     time_complexity: string;
     space_complexity: string;
   }>;
+  difficulty?: string;
+  tags?: string[];
 }
 
 const languages = [
@@ -66,6 +84,7 @@ const languages = [
 
 export default function InterviewPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const {
     startCall,
     endCall,
@@ -75,6 +94,10 @@ export default function InterviewPage() {
     transcript,
     error: vapiError,
   } = useVapi();
+  
+  // Get API URL from environment variable
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://harvardapi.codestacx.com";
+  
   const [problemData, setProblemData] = useState<LeetCodeProblem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -95,6 +118,9 @@ export default function InterviewPage() {
   const debouncedCode = useDebounce(editorCode, 2000); // 2-second debounce
   const lastSentCodeRef = useRef<string>("");
   const hasInitialCodeBeenSent = useRef(false);
+
+  // Get problemId from URL if present
+  const problemId = searchParams.get("problemId");
 
   // Convert Vapi transcript to TranscriptPanel format
   const transcriptMessages = transcript
@@ -142,15 +168,51 @@ export default function InterviewPage() {
     const fetchProblem = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          "https://harvardapi.codestacx.com/api/leetcode",
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch problem");
+        
+        let data: LeetCodeProblem;
+        
+        if (problemId) {
+          // Fetch specific problem by ID
+          console.log("🔍 Fetching problem by ID:", problemId);
+          const response = await fetch(
+            `${API_URL}/api/problem/${problemId}`,
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch problem");
+          }
+          const problemResponse = await response.json();
+          
+          // Transform backend format to match frontend expectations
+          data = {
+            title: problemResponse.title,
+            type: problemResponse.tags?.[0] || "general",
+            description: problemResponse.description,
+            difficulty: problemResponse.difficulty,
+            details: problemResponse.details,
+            starter_code: problemResponse.starter_codes?.python || "",
+            starter_codes: problemResponse.starter_codes,
+            tags: problemResponse.tags,
+          };
+          
+          // Add example_test_case from details if exists
+          if (problemResponse.details?.examples?.[0]) {
+            data.example_test_case = problemResponse.details.examples[0];
+          }
+        } else {
+          // Fetch random problem (existing behavior)
+          console.log("🎲 Fetching random problem");
+          const response = await fetch(
+            `${API_URL}/api/leetcode`,
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch problem");
+          }
+          data = await response.json();
         }
-        const data: LeetCodeProblem = await response.json();
+        
         setProblemData(data);
         setError(null);
+        console.log("✅ Problem loaded:", data.title);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
         console.error("Error fetching problem:", err);
@@ -160,7 +222,7 @@ export default function InterviewPage() {
     };
 
     fetchProblem();
-  }, [isMobile]);
+  }, [isMobile, problemId, API_URL]);
 
   // Effect: Send initial starter code when call starts
   useEffect(() => {
@@ -168,8 +230,9 @@ export default function InterviewPage() {
       // Wait 1 second for call to fully establish
       setTimeout(() => {
         console.log("📤 Sending initial starter code");
-        sendCodeContext(problemData.starter_code, language, problemData.title);
-        lastSentCodeRef.current = problemData.starter_code;
+        const starterCode = problemData.starter_code || "";
+        sendCodeContext(starterCode, language, problemData.title);
+        lastSentCodeRef.current = starterCode;
         hasInitialCodeBeenSent.current = true;
       }, 1000);
     }
@@ -350,6 +413,9 @@ export default function InterviewPage() {
                 type={problemData?.type}
                 description={problemData?.description}
                 exampleTestCase={problemData?.example_test_case}
+                details={problemData?.details}
+                difficulty={problemData?.difficulty}
+                tags={problemData?.tags}
                 loading={loading}
                 error={error}
               />

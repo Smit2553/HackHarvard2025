@@ -3,6 +3,7 @@
 import { Navigation } from "@/components/navigation";
 import { useRouter } from "next/navigation";
 import { Building2, TrendingUp, Shuffle } from "lucide-react";
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -10,9 +11,60 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function PracticePage() {
   const router = useRouter();
+  const [leetcodeUrl, setLeetcodeUrl] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Get API URL from environment variable
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://harvardapi.codestacx.com";
+
+  const handleScrapeLeetCode = async () => {
+    if (!leetcodeUrl.trim()) {
+      setError("Please enter a LeetCode URL");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      console.log("🔍 Scraping LeetCode problem:", leetcodeUrl);
+
+      const response = await fetch(
+        `${API_URL}/api/scrape_leetcode`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ url: leetcodeUrl }),
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to scrape problem");
+      }
+
+      const data = await response.json();
+      console.log("✅ Scraped problem:", data);
+
+      // Navigate to interview page with problem ID
+      router.push(`/interview?problemId=${data.problem_id}`);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "An error occurred";
+      setError(errorMessage);
+      console.error("❌ Error scraping LeetCode:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const practiceOptions = [
     {
@@ -83,16 +135,50 @@ export default function PracticePage() {
             })}
           </div>
 
-          <div className="mt-16 text-center">
-            <p className="text-sm text-muted-foreground">
-              Not sure where to start?{" "}
-              <button
-                onClick={() => router.push("/interview")}
-                className="cursor-pointer underline underline-offset-4 hover:text-foreground transition-colors"
-              >
-                Try our recommended path
-              </button>
-            </p>
+          <div className="mt-16 max-w-2xl mx-auto">
+            <div className="border-t pt-12">
+              <div className="text-center mb-6">
+                <h3 className="text-lg font-semibold mb-2">
+                  Have your own problem?
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Paste a LeetCode URL to practice with a specific problem
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Input
+                  type="text"
+                  placeholder="https://leetcode.com/problems/two-sum/"
+                  value={leetcodeUrl}
+                  onChange={(e) => setLeetcodeUrl(e.target.value)}
+                  className="flex-1"
+                  disabled={isLoading}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !isLoading) {
+                      handleScrapeLeetCode();
+                    }
+                  }}
+                />
+                <Button
+                  onClick={handleScrapeLeetCode}
+                  disabled={isLoading || !leetcodeUrl.trim()}
+                  className="sm:w-auto w-full"
+                >
+                  {isLoading ? "Loading..." : "Start Interview"}
+                </Button>
+              </div>
+
+              {error && (
+                <p className="text-sm text-destructive mt-3 text-center">
+                  {error}
+                </p>
+              )}
+
+              <p className="text-xs text-muted-foreground text-center mt-4">
+                Works with any LeetCode problem URL
+              </p>
+            </div>
           </div>
         </div>
       </main>
