@@ -10,6 +10,7 @@ import {
   useRef,
 } from "react";
 import Vapi from "@vapi-ai/web";
+import { getSessionId } from "@/lib/sessionId";
 
 interface TranscriptSegment {
   type: "transcript" | "call-start" | "call-end";
@@ -233,6 +234,7 @@ export function VapiProvider({ children }: { children: ReactNode }) {
   /**
    * Send code context using Vapi metadata (invisible to conversation)
    * Metadata is accessible to AI but doesn't appear in chat transcript
+   * Includes session ID to isolate users in multi-user environments
    */
   const sendCodeContext = useCallback(
     (code: string, language: string, problem: string) => {
@@ -242,8 +244,11 @@ export function VapiProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        console.log("📤 Sending code context via metadata");
-        console.log(`   Problem: ${problem}`);
+        const sessionId = getSessionId(); // Get unique session ID for this browser tab
+      
+      console.log("📤 Sending code context via metadata");
+        console.log(`   Session: ${sessionId}`);
+      console.log(`   Problem: ${problem}`);
         console.log(`   Language: ${language}`);
         console.log(`   Code length: ${code.length} chars`);
 
@@ -257,6 +262,7 @@ export function VapiProvider({ children }: { children: ReactNode }) {
             content: "Code context updated",
           },
           metadata: {
+          sessionId: sessionId,
             type: "code_update",
             problem: problem,
             language: language,
