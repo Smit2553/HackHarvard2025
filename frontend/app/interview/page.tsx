@@ -94,10 +94,11 @@ export default function InterviewPage() {
     transcript,
     error: vapiError,
   } = useVapi();
-  
+
   // Get API URL from environment variable
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://harvardapi.codestacx.com";
-  
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || "https://harvardapi.codestacx.com";
+
   const [problemData, setProblemData] = useState<LeetCodeProblem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -168,20 +169,18 @@ export default function InterviewPage() {
     const fetchProblem = async () => {
       try {
         setLoading(true);
-        
+
         let data: LeetCodeProblem;
-        
+
         if (problemId) {
           // Fetch specific problem by ID
           console.log("🔍 Fetching problem by ID:", problemId);
-          const response = await fetch(
-            `${API_URL}/api/problem/${problemId}`,
-          );
+          const response = await fetch(`${API_URL}/api/problem/${problemId}`);
           if (!response.ok) {
             throw new Error("Failed to fetch problem");
           }
           const problemResponse = await response.json();
-          
+
           // Transform backend format to match frontend expectations
           data = {
             title: problemResponse.title,
@@ -193,7 +192,7 @@ export default function InterviewPage() {
             starter_codes: problemResponse.starter_codes,
             tags: problemResponse.tags,
           };
-          
+
           // Add example_test_case from details if exists
           if (problemResponse.details?.examples?.[0]) {
             data.example_test_case = problemResponse.details.examples[0];
@@ -201,15 +200,13 @@ export default function InterviewPage() {
         } else {
           // Fetch random problem (existing behavior)
           console.log("🎲 Fetching random problem");
-          const response = await fetch(
-            `${API_URL}/api/leetcode`,
-          );
+          const response = await fetch(`${API_URL}/api/leetcode`);
           if (!response.ok) {
             throw new Error("Failed to fetch problem");
           }
           data = await response.json();
         }
-        
+
         setProblemData(data);
         setError(null);
         console.log("✅ Problem loaded:", data.title);

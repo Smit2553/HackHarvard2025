@@ -57,11 +57,11 @@ export default function PricingPage() {
   ];
 
   return (
-    <div className="h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
 
-      <main className="flex-1 flex items-center py-12">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 w-full">
+      <main className="flex-1 flex items-center py-12 px-4 md:px-6">
+        <div className="max-w-6xl mx-auto w-full">
           <div className="text-center mb-12">
             <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
               Simple, transparent pricing

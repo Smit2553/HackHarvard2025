@@ -21,7 +21,8 @@ export default function PracticePage() {
   const [error, setError] = useState<string | null>(null);
 
   // Get API URL from environment variable
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://harvardapi.codestacx.com";
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || "https://harvardapi.codestacx.com";
 
   const handleScrapeLeetCode = async () => {
     if (!leetcodeUrl.trim()) {
@@ -35,16 +36,13 @@ export default function PracticePage() {
     try {
       console.log("🔍 Scraping LeetCode problem:", leetcodeUrl);
 
-      const response = await fetch(
-        `${API_URL}/api/scrape_leetcode`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ url: leetcodeUrl }),
+      const response = await fetch(`${API_URL}/api/scrape_leetcode`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({ url: leetcodeUrl }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -98,8 +96,8 @@ export default function PracticePage() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
 
-      <main className="flex-1 flex items-center py-12 md:py-24">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 w-full">
+      <main className="flex-1 flex items-center py-12 md:py-24 px-4 md:px-6">
+        <div className="max-w-6xl mx-auto w-full">
           <div className="max-w-2xl mx-auto mb-12 text-center">
             <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
               How do you want to practice?
