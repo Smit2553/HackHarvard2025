@@ -1,25 +1,13 @@
-// app/profile/page.tsx (rename from visualizations)
 "use client";
 
 import { Navigation } from "@/components/navigation";
 import { useState, useEffect } from "react";
-import {
-  Clock,
-  TrendingUp,
-  ChevronRight,
-  Target,
-  Award,
-  BarChart3,
-} from "lucide-react";
+import { Clock, TrendingUp, Target, Award } from "lucide-react";
 import { useRouter } from "next/navigation";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { StatCard } from "@/components/profile/stat-card";
+import { WeeklyActivity } from "@/components/profile/weekly-activity";
+import { SessionList } from "@/components/profile/session-list";
+import { ProfileHeader } from "@/components/profile/profile-header";
 
 interface TranscriptSegment {
   type: "transcript" | "call-start" | "call-end";
@@ -67,31 +55,6 @@ export default function ProfilePage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInHours = diffInMs / (1000 * 60 * 60);
-    const diffInDays = diffInHours / 24;
-
-    if (diffInHours < 1) {
-      const minutes = Math.floor(diffInMs / (1000 * 60));
-      return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
-    } else if (diffInHours < 24) {
-      const hours = Math.floor(diffInHours);
-      return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
-    } else if (diffInDays < 7) {
-      const days = Math.floor(diffInDays);
-      return `${days} day${days !== 1 ? "s" : ""} ago`;
-    } else {
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
-      });
-    }
-  };
-
   const formatDuration = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
@@ -119,7 +82,9 @@ export default function ProfilePage() {
     { day: "Sun", sessions: 0 },
   ];
 
-  const maxSessions = Math.max(...weeklyProgress.map((d) => d.sessions));
+  const handleStartSession = () => {
+    router.push("/practice");
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -137,187 +102,44 @@ export default function ProfilePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  Total Practice
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-semibold">
-                  {formatDuration(totalPracticeTime)}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Across {transcripts.length} sessions
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4" />
-                  Avg Session
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-semibold">
-                  {formatDuration(avgSessionLength)}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Per interview
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Target className="w-4 h-4" />
-                  Current Streak
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-semibold">3 days</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Keep it going!
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Award className="w-4 h-4" />
-                  Best Score
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-semibold">87</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Your highest
-                </p>
-              </CardContent>
-            </Card>
+            <StatCard
+              icon={Clock}
+              title="Total Practice"
+              value={formatDuration(totalPracticeTime)}
+              subtitle={`Across ${transcripts.length} sessions`}
+            />
+            <StatCard
+              icon={TrendingUp}
+              title="Avg Session"
+              value={formatDuration(avgSessionLength)}
+              subtitle="Per interview"
+            />
+            <StatCard
+              icon={Target}
+              title="Current Streak"
+              value="3 days"
+              subtitle="Keep it going!"
+            />
+            <StatCard
+              icon={Award}
+              title="Best Score"
+              value="87"
+              subtitle="Your highest"
+            />
           </div>
 
-          <Card className="mb-12">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <BarChart3 className="w-4 h-4" />
-                This Week&#39;s Activity
-              </CardTitle>
-              <CardDescription>Sessions completed each day</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-end gap-2 h-32">
-                {weeklyProgress.map((day) => (
-                  <div
-                    key={day.day}
-                    className="flex-1 flex flex-col items-center gap-2"
-                  >
-                    <div
-                      className="w-full bg-muted rounded-t flex flex-col justify-end"
-                      style={{ height: "100%" }}
-                    >
-                      <div
-                        className="bg-foreground rounded-t transition-all duration-300"
-                        style={{
-                          height: `${(day.sessions / maxSessions) * 100 || 5}%`,
-                        }}
-                      />
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {day.day}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <WeeklyActivity weeklyProgress={weeklyProgress} />
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-semibold">Recent Sessions</h2>
-              <Button onClick={() => router.push("/practice")}>
-                Start New Session
-              </Button>
-            </div>
+          <div className="mt-12 space-y-4">
+            <ProfileHeader onStartSession={handleStartSession} />
 
-            {loading ? (
-              <div className="py-24 text-center">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
-                <p className="text-muted-foreground mt-4">
-                  Loading sessions...
-                </p>
-              </div>
-            ) : error ? (
-              <div className="py-24 text-center">
-                <p className="text-red-500">{error}</p>
-                <Button
-                  onClick={fetchTranscripts}
-                  variant="outline"
-                  className="mt-4"
-                >
-                  Try Again
-                </Button>
-              </div>
-            ) : transcripts.length === 0 ? (
-              <Card className="py-24 text-center">
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">
-                    No sessions yet. Time to start practicing!
-                  </p>
-                  <Button onClick={() => router.push("/practice")}>
-                    Start Your First Session
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4">
-                {transcripts.slice(0, 5).map((transcript) => (
-                  <Card
-                    key={transcript.id}
-                    className="cursor-pointer hover:bg-muted/30 transition-colors"
-                    onClick={() => router.push(`/scores/${transcript.id}`)}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-4">
-                            <h3 className="font-medium">
-                              Session #{transcript.id}
-                            </h3>
-                            <span className="text-sm text-muted-foreground">
-                              {formatDate(transcript.created_at)}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span>
-                              {formatDuration(transcript.call_duration)}
-                            </span>
-                            <span>•</span>
-                            <span>
-                              {transcript.user_messages +
-                                transcript.assistant_messages}{" "}
-                              messages
-                            </span>
-                          </div>
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-
-                {transcripts.length > 5 && (
-                  <Button variant="outline" className="w-full">
-                    View All Sessions
-                  </Button>
-                )}
-              </div>
-            )}
+            <SessionList
+              transcripts={transcripts}
+              loading={loading}
+              error={error}
+              onRetry={fetchTranscripts}
+              onStartSession={handleStartSession}
+            />
           </div>
         </div>
       </main>
