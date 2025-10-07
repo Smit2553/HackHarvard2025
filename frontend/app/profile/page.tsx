@@ -8,6 +8,7 @@ import { StatCard } from "@/components/profile/stat-card";
 import { WeeklyActivity } from "@/components/profile/weekly-activity";
 import { SessionList } from "@/components/profile/session-list";
 import { ProfileHeader } from "@/components/profile/profile-header";
+import { SimpleFooter } from "@/components/simple-footer";
 
 interface TranscriptSegment {
   type: "transcript" | "call-start" | "call-end";
@@ -143,6 +144,7 @@ export default function ProfilePage() {
           </div>
         </div>
       </main>
+      <SimpleFooter />
     </div>
   );
 }

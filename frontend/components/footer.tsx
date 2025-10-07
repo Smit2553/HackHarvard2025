@@ -40,7 +40,7 @@ export default function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="/" // Placeholder for Documentation page
+                  href="/"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Documentation
@@ -48,7 +48,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/" // Placeholder for Blog page
+                  href="/"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Blog
@@ -62,7 +62,7 @@ export default function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="/" // Placeholder for About page
+                  href="/"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   About
@@ -70,7 +70,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/" // Placeholder for Careers page
+                  href="/"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Careers
@@ -84,7 +84,7 @@ export default function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="/" // Placeholder for Privacy page
+                  href="/"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Privacy
@@ -92,7 +92,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/" // Placeholder for Terms page
+                  href="/"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Terms
