@@ -118,7 +118,7 @@ export function Navigation() {
   ];
 
   return (
-    <header className="border-b border-border/50 px-4 md:px-6 h-14 flex items-center justify-between flex-shrink-0">
+    <header className="sticky top-0 z-50 border-b border-border/50 px-4 md:px-6 h-14 flex items-center justify-between flex-shrink-0 bg-background">
       <div className="flex items-center gap-4 md:gap-6">
         <div
           className="flex items-center gap-2 group cursor-pointer"
