@@ -17,9 +17,14 @@ import { useRouter } from "next/navigation";
 interface LoginDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onLoginSuccess?: () => void;
 }
 
-export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
+export function LoginDialog({
+  open,
+  onOpenChange,
+  onLoginSuccess,
+}: LoginDialogProps) {
   const router = useRouter();
   const [mode, setMode] = useState<"password" | "otp">("password");
   const [otpSent, setOtpSent] = useState(false);
@@ -34,7 +39,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
     // TODO: Implement actual login logic
     setTimeout(() => {
       setLoading(false);
-      onOpenChange(false);
+      onLoginSuccess?.();
     }, 1000);
   };
 
@@ -54,7 +59,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
     // TODO: Implement OTP verification logic
     setTimeout(() => {
       setLoading(false);
-      onOpenChange(false);
+      onLoginSuccess?.();
       // Reset states
       setOtpSent(false);
       setOtpCode("");

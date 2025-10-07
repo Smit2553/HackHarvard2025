@@ -29,11 +29,11 @@ interface User {
 }
 
 // Dummy user data
-//const DUMMY_USER: User = {
-//  email: "john.doe@example.com",
-//  name: "John Doe",
-//  avatar: "https://github.com/soradotwav.png",
-//};
+const DUMMY_USER: User = {
+  email: "john.doe@example.com",
+  name: "John Doe",
+  avatar: "https://github.com/soradotwav.png",
+};
 
 // Storage keys
 const AUTH_STORAGE_KEY = "offscript_auth";
@@ -86,12 +86,15 @@ export function Navigation() {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
-  // Fake login function - automatically logs into dummy user
   const handleLogin = () => {
-    //setIsLoggedIn(true);
-    //setUser(DUMMY_USER);
-    //console.log("Logged in as:", DUMMY_USER.name)
     setShowLoginDialog(true);
+  };
+
+  // Handle successful login from dialog
+  const handleLoginSuccess = () => {
+    setIsLoggedIn(true);
+    setUser(DUMMY_USER);
+    setShowLoginDialog(false);
   };
 
   // Logout function
@@ -201,7 +204,7 @@ export function Navigation() {
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/settings")}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
@@ -295,7 +298,7 @@ export function Navigation() {
                     <button
                       type="button"
                       className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors text-left w-full px-3 py-2 rounded-md hover:bg-muted/50"
-                      onClick={() => handleNavigation("/")} // Placeholder for settings page
+                      onClick={() => handleNavigation("/settings")}
                     >
                       Settings
                     </button>
@@ -340,7 +343,11 @@ export function Navigation() {
           </motion.div>
         )}
       </AnimatePresence>
-      <LoginDialog open={showLoginDialog} onOpenChange={setShowLoginDialog} />
+      <LoginDialog
+        open={showLoginDialog}
+        onOpenChange={setShowLoginDialog}
+        onLoginSuccess={handleLoginSuccess}
+      />
     </header>
   );
 }
