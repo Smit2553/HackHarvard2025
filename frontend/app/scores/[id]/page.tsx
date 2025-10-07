@@ -3,19 +3,16 @@
 import React, { useState, useEffect } from "react";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  TrendingUp,
-  MessageSquare,
-  Code,
-  CheckCircle2,
-  AlertCircle,
-  Target,
-  ArrowLeft,
-  Calendar,
-  Clock,
-} from "lucide-react";
+import { TrendingUp, MessageSquare, Code, ArrowLeft } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
+import { OverallScoreDisplay } from "@/components/scores/overall-score-display";
+import { MetricCard } from "@/components/scores/metric-card";
+import { KeyMoments } from "@/components/scores/key-moments";
+import { SessionTimeline } from "@/components/scores/session-timeline";
+import { DetailedFeedback } from "@/components/scores/detailed-feedback";
+import { SessionInfoHeader } from "@/components/scores/session-info-header";
+import { ScoreActions } from "@/components/scores/score-actions";
+import { gradeToScore } from "@/lib/score-utils";
 
 interface TranscriptSegment {
   type: "transcript" | "call-start" | "call-end";
@@ -46,30 +43,6 @@ interface Transcript {
   created_at: string;
   ratings?: Rating | null;
 }
-
-// Convert letter grade to numeric score with randomized range
-const gradeToScore = (grade: string): number => {
-  const gradeRanges: Record<string, [number, number]> = {
-    "A+": [96, 100],
-    A: [91, 95],
-    "A-": [88, 90],
-    "B+": [85, 87],
-    B: [81, 84],
-    "B-": [78, 80],
-    "C+": [75, 77],
-    C: [71, 74],
-    "C-": [68, 70],
-    D: [60, 67],
-    F: [40, 59],
-  };
-
-  const range = gradeRanges[grade];
-  if (!range) return 75; // Default to 75 if grade not recognized
-
-  // Generate random number within the range
-  const [min, max] = range;
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-};
 
 export default function ScoreOverviewPage() {
   const router = useRouter();
@@ -150,60 +123,16 @@ export default function ScoreOverviewPage() {
   // Extract strengths from ratings
   const strengths = transcript?.ratings?.strengths || [];
 
+  // Convert improvement strings to ImprovementPoint format
+  const improvementPoints = improvements.map((point) => ({
+    title: "Improvement Area",
+    description: point,
+    priority: "medium" as const,
+  }));
+
   const average = Math.round(
     (scores.communication + scores.problemSolving + scores.implementation) / 3,
   );
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  const getScoreStatus = (score: number) => {
-    if (score >= 80)
-      return { text: "Excellent", color: "text-green-600 dark:text-green-400" };
-    if (score >= 60)
-      return { text: "Good", color: "text-yellow-600 dark:text-yellow-400" };
-    return { text: "Needs work", color: "text-red-600 dark:text-red-400" };
-  };
-
-  const MetricCard: React.FC<{
-    title: string;
-    score: number;
-    icon: React.ReactNode;
-    explanation?: string;
-  }> = ({ title, score, icon, explanation }) => {
-    const status = getScoreStatus(score);
-
-    return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-muted">{icon}</div>
-            <CardTitle className="text-base">{title}</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <div className="flex items-baseline justify-between mb-2">
-              <span className="text-3xl font-semibold">{score}</span>
-              <span className={`text-sm ${status.color}`}>{status.text}</span>
-            </div>
-            <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-              <div
-                className="h-full bg-foreground transition-all duration-500"
-                style={{ width: `${score}%` }}
-              />
-            </div>
-          </div>
-          {explanation && (
-            <p className="text-sm text-muted-foreground">{explanation}</p>
-          )}
-        </CardContent>
-      </Card>
-    );
-  };
 
   if (error) {
     return (
@@ -216,6 +145,17 @@ export default function ScoreOverviewPage() {
               Back to Profile
             </Button>
           </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!transcript) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navigation />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
         </main>
       </div>
     );
@@ -238,66 +178,19 @@ export default function ScoreOverviewPage() {
             </button>
           )}
 
-          {/* Header with session info */}
-          <header className="mb-16">
-            <div className="text-center mb-6">
-              <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
-                {transcriptId
-                  ? `Session #${transcript?.id || transcriptId}`
-                  : "Latest Interview Performance"}
-              </h1>
-              <p className="text-lg text-muted-foreground">
-                {transcriptId
-                  ? "Performance breakdown for this session"
-                  : "Here's how you did in your latest practice session"}
-              </p>
-            </div>
-
-            {transcript && (
-              <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  <span>
-                    {new Date(transcript.created_at).toLocaleDateString(
-                      "en-US",
-                      {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                      },
-                    )}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  <span>Duration: {formatTime(transcript.call_duration)}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4" />
-                  <span>
-                    {transcript.user_messages + transcript.assistant_messages}{" "}
-                    messages
-                  </span>
-                </div>
-              </div>
-            )}
-          </header>
+          <SessionInfoHeader
+            sessionId={transcript.id}
+            createdAt={transcript.created_at}
+            duration={transcript.call_duration}
+            messageCount={
+              transcript.user_messages + transcript.assistant_messages
+            }
+            isLatest={false}
+          />
 
           {/* Overall Score */}
           <section className="mb-20">
-            <div className="text-center mb-16">
-              <div className="inline-flex flex-col items-center">
-                <div className="text-sm text-muted-foreground mb-2">
-                  Overall Score
-                </div>
-                <div className="text-6xl md:text-7xl font-bold tracking-tight">
-                  {average}
-                </div>
-                <div className="text-lg text-muted-foreground mt-1">
-                  out of 100
-                </div>
-              </div>
-            </div>
+            <OverallScoreDisplay score={average} />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <MetricCard
@@ -321,156 +214,22 @@ export default function ScoreOverviewPage() {
             </div>
           </section>
 
-          {/* Highlights & Lowlights */}
-          <section className="mb-20">
-            <h2 className="text-2xl font-semibold mb-8">Key Moments</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <Card className="border-green-500/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
-                    What went well
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {strengths.length > 0 ? (
-                    <ul className="space-y-3">
-                      {strengths.map((item, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-green-600 dark:bg-green-400 mt-2 flex-shrink-0" />
-                          <span className="text-sm">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Complete an interview to see your strengths
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
+          <KeyMoments
+            strengths={strengths}
+            overallComments={transcript.ratings?.overall_comments || ""}
+          />
 
-              <Card className="border-orange-500/20">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                    Overall Feedback
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {transcript?.ratings?.overall_comments ? (
-                    <p className="text-sm">
-                      {transcript.ratings.overall_comments}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Complete an interview to receive detailed feedback
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </section>
+          <SessionTimeline
+            transcript={transcript.transcript}
+            loading={loading}
+          />
 
-          {/* Full Transcript */}
-          <section className="mb-20">
-            <h2 className="text-2xl font-semibold mb-8">Full Conversation</h2>
-            <Card>
-              <CardContent className="p-6">
-                {loading ? (
-                  <div className="text-center py-8">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
-                    <p className="text-muted-foreground mt-4">
-                      Loading transcript...
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4 max-h-[600px] overflow-y-auto">
-                    {transcript?.transcript
-                      .filter((s) => s.type === "transcript")
-                      .map((segment, index) => (
-                        <div key={index} className="flex items-start gap-3">
-                          <div
-                            className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                              segment.role === "user"
-                                ? "bg-green-500"
-                                : "bg-blue-500"
-                            }`}
-                          />
-                          <div className="flex-1 space-y-1">
-                            <div className="text-xs text-muted-foreground">
-                              {segment.role === "user" ? "You" : "Offscript"} •{" "}
-                              {formatTime(segment.secondsSinceStart)}
-                            </div>
-                            <p className="text-sm">{segment.text}</p>
-                          </div>
-                        </div>
-                      ))}
+          <DetailedFeedback
+            improvements={improvementPoints}
+            loading={loadingImprovements}
+          />
 
-                    {transcript?.transcript.filter(
-                      (s) => s.type === "transcript",
-                    ).length === 0 && (
-                      <p className="text-muted-foreground text-center py-4">
-                        No conversation messages in this transcript
-                      </p>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </section>
-
-          {/* Next Steps */}
-          <section className="mb-20">
-            <h2 className="text-2xl font-semibold mb-8">Detailed Feedback</h2>
-            {loadingImprovements ? (
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-foreground"></div>
-                  <p className="text-muted-foreground mt-4">
-                    Generating actionable feedback...
-                  </p>
-                </CardContent>
-              </Card>
-            ) : improvements.length > 0 ? (
-              <div className="space-y-4">
-                {improvements.map((point, i) => (
-                  <Card key={i}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <div className="p-2 rounded-lg bg-muted">
-                          <Target className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm text-muted-foreground">
-                            {point}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <p className="text-muted-foreground">
-                    No specific improvement points were generated for this session.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </section>
-
-          {/* Action Buttons */}
-          <section className="flex justify-center gap-4">
-            <Button variant="outline" size="lg">
-              Download Report
-            </Button>
-            <Button size="lg" onClick={() => router.push("/practice")}>
-              Practice Again
-            </Button>
-          </section>
+          <ScoreActions />
         </div>
       </main>
     </div>
