@@ -33,6 +33,7 @@ import {
   Monitor,
 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { api } from "@/lib/api";
 
 interface LeetCodeProblem {
   title: string;
@@ -71,6 +72,29 @@ interface LeetCodeProblem {
   tags?: string[];
 }
 
+interface BackendProblemResponse {
+  title: string;
+  description: string;
+  difficulty?: string;
+  tags?: string[];
+  details?: {
+    examples?: Array<{
+      input: string;
+      output: string;
+      explanation: string;
+    }>;
+    constraints?: string[];
+  };
+  starter_codes?: {
+    python?: string;
+    javascript?: string;
+    java?: string;
+    cpp?: string;
+    go?: string;
+    rust?: string;
+  };
+}
+
 const languages = [
   { value: "python", label: "Python" },
   { value: "javascript", label: "JavaScript" },
@@ -94,10 +118,6 @@ export default function InterviewPage() {
     transcript,
     error: vapiError,
   } = useVapi();
-
-  // Get API URL from environment variable
-  const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || "https://harvardapi.codestacx.com";
 
   const [problemData, setProblemData] = useState<LeetCodeProblem | null>(null);
   const [loading, setLoading] = useState(true);
@@ -170,46 +190,44 @@ export default function InterviewPage() {
       try {
         setLoading(true);
 
-        let data: LeetCodeProblem;
+        let mapped: LeetCodeProblem;
 
         if (problemId) {
           // Fetch specific problem by ID
           console.log("🔍 Fetching problem by ID:", problemId);
-          const response = await fetch(`${API_URL}/api/problem/${problemId}`);
-          if (!response.ok) {
-            throw new Error("Failed to fetch problem");
-          }
-          const problemResponse = await response.json();
+          const problemResponse =
+            await api.problemById<BackendProblemResponse>(problemId);
+
+          const normalizedDetails = problemResponse.details
+            ? {
+                examples: problemResponse.details.examples ?? [],
+                constraints: problemResponse.details.constraints ?? [],
+              }
+            : undefined;
+
+          const example = normalizedDetails?.examples?.[0];
 
           // Transform backend format to match frontend expectations
-          data = {
+          mapped = {
             title: problemResponse.title,
             type: problemResponse.tags?.[0] || "general",
             description: problemResponse.description,
             difficulty: problemResponse.difficulty,
-            details: problemResponse.details,
+            details: normalizedDetails,
             starter_code: problemResponse.starter_codes?.python || "",
             starter_codes: problemResponse.starter_codes,
             tags: problemResponse.tags,
+            ...(example ? { example_test_case: example } : {}),
           };
-
-          // Add example_test_case from details if exists
-          if (problemResponse.details?.examples?.[0]) {
-            data.example_test_case = problemResponse.details.examples[0];
-          }
         } else {
           // Fetch random problem (existing behavior)
           console.log("🎲 Fetching random problem");
-          const response = await fetch(`${API_URL}/api/leetcode`);
-          if (!response.ok) {
-            throw new Error("Failed to fetch problem");
-          }
-          data = await response.json();
+          mapped = await api.leetcodeRandom<LeetCodeProblem>();
         }
 
-        setProblemData(data);
+        setProblemData(mapped);
         setError(null);
-        console.log("✅ Problem loaded:", data.title);
+        console.log("✅ Problem loaded:", mapped.title);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
         console.error("Error fetching problem:", err);
@@ -219,7 +237,7 @@ export default function InterviewPage() {
     };
 
     fetchProblem();
-  }, [isMobile, problemId, API_URL]);
+  }, [isMobile, problemId]);
 
   // Effect: Send initial starter code when call starts
   useEffect(() => {

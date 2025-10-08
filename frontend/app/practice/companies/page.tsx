@@ -8,8 +8,9 @@ import { PracticeSearch } from "@/components/practice/practice-search";
 import { PracticeFilters } from "@/components/practice/practice-filters";
 import { PracticeSidebar } from "@/components/practice/practice-sidebar";
 import { Pagination } from "@/components/pagination";
-import { Company, Transcript } from "@/lib/types";
+import { Company } from "@/lib/types";
 import { formatDuration } from "@/lib/format";
+import { useTranscripts } from "@/hooks/useTranscripts";
 
 const companies: Company[] = [
   {
@@ -105,25 +106,8 @@ export default function CompanyPracticePage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
-  const [transcripts, setTranscripts] = useState<Transcript[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-
-  useEffect(() => {
-    const fetchTranscripts = async () => {
-      try {
-        const response = await fetch(
-          "https://harvardapi.codestacx.com/api/transcripts",
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setTranscripts(Array.isArray(data) ? data : []);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    void fetchTranscripts();
-  }, []);
+  const { data: transcripts, stats } = useTranscripts();
 
   useEffect(() => {
     setCurrentPage(1);
@@ -159,10 +143,7 @@ export default function CompanyPracticePage() {
 
   const totalPages = Math.ceil(filteredCompanies.length / ITEMS_PER_PAGE);
 
-  const totalPracticeTime = transcripts.reduce(
-    (sum, t) => sum + (t.call_duration || 0),
-    0,
-  );
+  const totalPracticeTime = stats.totalPracticeTime;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

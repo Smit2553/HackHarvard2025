@@ -15,8 +15,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Pagination } from "@/components/pagination";
-import { Problem, Transcript } from "@/lib/types";
+import { Problem } from "@/lib/types";
 import { formatDuration } from "@/lib/format";
+import { useTranscripts } from "@/hooks/useTranscripts";
 
 const problems: Problem[] = [
   {
@@ -139,25 +140,8 @@ export default function ProblemsPage() {
   const [selectedTopic, setSelectedTopic] = useState<string>("all");
   const [selectedCompany, setSelectedCompany] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("alphabetical");
-  const [transcripts, setTranscripts] = useState<Transcript[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-
-  useEffect(() => {
-    const fetchTranscripts = async () => {
-      try {
-        const response = await fetch(
-          "https://harvardapi.codestacx.com/api/transcripts",
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setTranscripts(Array.isArray(data) ? data : []);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    void fetchTranscripts();
-  }, []);
+  const { data: transcripts, stats } = useTranscripts();
 
   useEffect(() => {
     setCurrentPage(1);
@@ -228,10 +212,7 @@ export default function ProblemsPage() {
     hard: problems.filter((p) => p.difficulty === "hard").length,
   };
 
-  const totalPracticeTime = transcripts.reduce(
-    (sum, t) => sum + (t.call_duration || 0),
-    0,
-  );
+  const totalPracticeTime = stats.totalPracticeTime;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

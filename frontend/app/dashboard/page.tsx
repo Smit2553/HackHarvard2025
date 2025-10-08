@@ -36,7 +36,8 @@ import {
   Monitor,
 } from "lucide-react";
 import { formatDuration, formatTimeAgo } from "@/lib/format";
-import { Transcript } from "@/lib/types";
+import { useTranscripts } from "@/hooks/useTranscripts";
+import { api } from "@/lib/api";
 
 interface AuthData {
   isLoggedIn: boolean;
@@ -54,14 +55,11 @@ interface AuthData {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || "https://harvardapi.codestacx.com";
   const [leetcodeUrl, setLeetcodeUrl] = useState("");
   const [isScraping, setIsScraping] = useState(false);
   const [scrapeError, setScrapeError] = useState<string | null>(null);
-  const [transcripts, setTranscripts] = useState<Transcript[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showMobileWarning, setShowMobileWarning] = useState(false);
+  const { data: transcripts, loading, stats } = useTranscripts();
 
   const [userName, setUserName] = useState<string>("there");
   const [targetCompany, setTargetCompany] = useState<string>("");
@@ -83,25 +81,6 @@ export default function DashboardPage() {
     }
   }, []);
 
-  useEffect(() => {
-    const fetchTranscripts = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(
-          "https://harvardapi.codestacx.com/api/transcripts",
-        );
-        if (!response.ok) throw new Error("Failed to fetch transcripts");
-        const data = await response.json();
-        setTranscripts(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    void fetchTranscripts();
-  }, []);
-
   const checkIfMobile = (): boolean => {
     const width = window.innerWidth;
     const userAgent = navigator.userAgent.toLowerCase();
@@ -121,21 +100,7 @@ export default function DashboardPage() {
     router.push(href);
   };
 
-  const totalPracticeTime = useMemo(
-    () => transcripts.reduce((sum, t) => sum + (t.call_duration || 0), 0),
-    [transcripts],
-  );
-
-  const avgSessionLength = useMemo(() => {
-    if (transcripts.length === 0) return 0;
-    return Math.round(totalPracticeTime / transcripts.length);
-  }, [totalPracticeTime, transcripts.length]);
-
-  const thisWeekSessions = useMemo(() => {
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    return transcripts.filter((t) => new Date(t.created_at) > weekAgo).length;
-  }, [transcripts]);
+  const { totalPracticeTime, avgSessionLength, thisWeekSessions } = stats;
 
   const getTimeOfDay = () => {
     const hour = new Date().getHours();
@@ -183,16 +148,7 @@ export default function DashboardPage() {
     setIsScraping(true);
     setScrapeError(null);
     try {
-      const response = await fetch(`${API_URL}/api/scrape_leetcode`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: leetcodeUrl }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || "Failed to scrape problem");
-      }
-      const data = await response.json();
+      const data = await api.scrapeLeetcode(leetcodeUrl);
       router.push(`/interview?problemId=${data.problem_id}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : "An error occurred";

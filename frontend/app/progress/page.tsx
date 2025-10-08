@@ -2,7 +2,7 @@
 
 import { Navigation } from "@/components/navigation";
 import { SimpleFooter } from "@/components/simple-footer";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { StatCard } from "@/components/progress/stat-card";
 import { WeeklyActivity } from "@/components/progress/weekly-activity";
@@ -22,79 +22,25 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { formatDuration, formatTimeAgo } from "@/lib/format";
-import { Transcript } from "@/lib/types";
+import { useTranscripts } from "@/hooks/useTranscripts";
 
 export default function ProgressPage() {
   const router = useRouter();
-  const [transcripts, setTranscripts] = useState<Transcript[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showAllSessions, setShowAllSessions] = useState(false);
+  const {
+    data: transcripts,
+    loading,
+    error,
+    refetch,
+    stats,
+  } = useTranscripts();
 
-  useEffect(() => {
-    fetchTranscripts();
-  }, []);
-
-  const fetchTranscripts = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(
-        "https://harvardapi.codestacx.com/api/transcripts",
-      );
-      if (!response.ok) throw new Error("Failed to fetch transcripts");
-      const data = await response.json();
-      setTranscripts(Array.isArray(data) ? data : []);
-      setError(null);
-    } catch (err) {
-      console.error("Error fetching transcripts:", err);
-      setError("Failed to load transcripts. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const totalPracticeTime = useMemo(
-    () => transcripts.reduce((sum, t) => sum + (t.call_duration || 0), 0),
-    [transcripts],
-  );
-
-  const avgSessionLength = useMemo(() => {
-    if (transcripts.length === 0) return 0;
-    return Math.round(totalPracticeTime / transcripts.length);
-  }, [totalPracticeTime, transcripts.length]);
-
-  const thisWeekSessions = useMemo(() => {
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    return transcripts.filter((t) => new Date(t.created_at) > weekAgo).length;
-  }, [transcripts]);
-
-  const currentStreak = useMemo(() => {
-    if (transcripts.length === 0) return 0;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const sorted = [...transcripts].sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-    );
-    let streak = 0;
-    let cursor = new Date(today);
-    for (const t of sorted) {
-      const d = new Date(t.created_at);
-      d.setHours(0, 0, 0, 0);
-      const diffDays = Math.floor(
-        (cursor.getTime() - d.getTime()) / (1000 * 60 * 60 * 24),
-      );
-      if (diffDays === 0 || diffDays === 1) {
-        streak += 1;
-        cursor = new Date(d);
-        cursor.setDate(cursor.getDate() - 1);
-      } else {
-        break;
-      }
-    }
-    return streak;
-  }, [transcripts]);
+  const {
+    totalPracticeTime,
+    avgSessionLength,
+    thisWeekSessions,
+    currentStreak,
+  } = stats;
 
   const avgScores = {
     communication: 82,
@@ -270,7 +216,7 @@ export default function ProgressPage() {
                 <Card>
                   <CardContent className="p-12 text-center">
                     <p className="text-destructive mb-4">{error}</p>
-                    <Button onClick={fetchTranscripts} variant="outline">
+                    <Button onClick={refetch} variant="outline">
                       Try Again
                     </Button>
                   </CardContent>

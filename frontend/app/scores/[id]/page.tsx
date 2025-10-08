@@ -17,6 +17,7 @@ import type {
   Transcript as BaseTranscript,
   TranscriptSegment,
 } from "@/lib/types";
+import { api } from "@/lib/api";
 
 interface Rating {
   communication_grade: string;
@@ -51,15 +52,10 @@ export default function ScoreOverviewPage() {
         setLoading(true);
         setError(null);
 
-        const url = transcriptId
-          ? `https://harvardapi.codestacx.com/api/transcript/${transcriptId}`
-          : "https://harvardapi.codestacx.com/api/transcript/latest";
-
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Failed to fetch transcript");
-
-        const data = await response.json();
-        setTranscript(data);
+        const data = transcriptId
+          ? await api.transcript(transcriptId as string)
+          : await api.latestTranscript();
+        setTranscript(data as Transcript);
       } catch (err) {
         console.error("Error fetching transcript:", err);
         setError("Failed to load transcript");
@@ -77,13 +73,7 @@ export default function ScoreOverviewPage() {
     const fetchImprovements = async () => {
       try {
         setLoadingImprovements(true);
-        const response = await fetch(
-          `https://harvardapi.codestacx.com/api/transcript/${transcriptId}/improvements`,
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch improvement points");
-        }
-        const data = await response.json();
+        const data = await api.transcriptImprovements(transcriptId as string);
         setImprovements(data.points || []);
       } catch (err) {
         console.error("Error fetching improvements:", err);
