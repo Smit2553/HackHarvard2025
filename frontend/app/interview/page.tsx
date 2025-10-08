@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import InfoPanel from "@/components/InfoPanel";
 import Editor from "@/components/Editor";
@@ -106,7 +106,7 @@ const languages = [
   { value: "ruby", label: "Ruby" },
 ];
 
-export default function InterviewPage() {
+function InterviewContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const {
@@ -568,5 +568,17 @@ export default function InterviewPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+export default function InterviewPage() {
+  return (
+    <Suspense fallback={
+      <div className="h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Loading interview...</p>
+      </div>
+    }>
+      <InterviewContent />
+    </Suspense>
   );
 }
