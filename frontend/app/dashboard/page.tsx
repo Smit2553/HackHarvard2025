@@ -35,14 +35,8 @@ import {
   TrendingUp,
   Monitor,
 } from "lucide-react";
-
-interface Transcript {
-  id: number;
-  call_duration: number;
-  user_messages: number;
-  assistant_messages: number;
-  created_at: string;
-}
+import { formatDuration, formatTimeAgo } from "@/lib/format";
+import { Transcript } from "@/lib/types";
 
 interface AuthData {
   isLoggedIn: boolean;
@@ -142,26 +136,6 @@ export default function DashboardPage() {
     weekAgo.setDate(weekAgo.getDate() - 7);
     return transcripts.filter((t) => new Date(t.created_at) > weekAgo).length;
   }, [transcripts]);
-
-  const formatDuration = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    if (hours > 0) return `${hours}h ${minutes % 60}m`;
-    return `${minutes}m`;
-  };
-
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const minutes = Math.floor(diffMs / (1000 * 60));
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days === 1) return "yesterday";
-    return `${days}d ago`;
-  };
 
   const getTimeOfDay = () => {
     const hour = new Date().getHours();

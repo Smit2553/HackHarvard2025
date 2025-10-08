@@ -1,23 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
-
-interface TranscriptSegment {
-  type: "transcript" | "call-start" | "call-end";
-  role?: "user" | "assistant";
-  text?: string;
-  timestamp: string;
-  secondsSinceStart: number;
-}
+import { formatClock } from "@/lib/format";
+import { TranscriptSegment } from "@/lib/types";
 
 interface SessionTimelineProps {
   transcript: TranscriptSegment[];
   loading?: boolean;
 }
-
-const formatTime = (seconds: number) => {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
-};
 
 export function SessionTimeline({ transcript, loading }: SessionTimelineProps) {
   const messages = transcript.filter((s) => s.type === "transcript");
@@ -46,7 +34,7 @@ export function SessionTimeline({ transcript, loading }: SessionTimelineProps) {
                   <div className="flex-1 space-y-1">
                     <div className="text-xs text-muted-foreground">
                       {segment.role === "user" ? "You" : "Offscript"} •{" "}
-                      {formatTime(segment.secondsSinceStart)}
+                      {formatClock(segment.secondsSinceStart)}
                     </div>
                     <p className="text-sm">{segment.text}</p>
                   </div>

@@ -13,14 +13,10 @@ import { DetailedFeedback } from "@/components/scores/detailed-feedback";
 import { SessionInfoHeader } from "@/components/scores/session-info-header";
 import { ScoreActions } from "@/components/scores/score-actions";
 import { gradeToScore } from "@/lib/score-utils";
-
-interface TranscriptSegment {
-  type: "transcript" | "call-start" | "call-end";
-  role?: "user" | "assistant";
-  text?: string;
-  timestamp: string;
-  secondsSinceStart: number;
-}
+import type {
+  Transcript as BaseTranscript,
+  TranscriptSegment,
+} from "@/lib/types";
 
 interface Rating {
   communication_grade: string;
@@ -33,16 +29,10 @@ interface Rating {
   strengths: string[];
 }
 
-interface Transcript {
-  id: number;
-  transcript: TranscriptSegment[];
-  call_duration: number;
-  user_messages: number;
-  assistant_messages: number;
-  metadata: Record<string, unknown>;
-  created_at: string;
-  ratings?: Rating | null;
-}
+type Transcript = BaseTranscript & {
+  transcript: TranscriptSegment;
+  ratings: Rating;
+};
 
 export default function ScoreOverviewPage() {
   const router = useRouter();

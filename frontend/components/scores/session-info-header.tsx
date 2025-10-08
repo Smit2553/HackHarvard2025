@@ -1,4 +1,5 @@
 import { Calendar, Clock, MessageSquare } from "lucide-react";
+import { formatClock, formatDateLong } from "@/lib/format";
 
 interface SessionInfoHeaderProps {
   sessionId?: number;
@@ -7,12 +8,6 @@ interface SessionInfoHeaderProps {
   messageCount: number;
   isLatest?: boolean;
 }
-
-const formatTime = (seconds: number) => {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
-};
 
 export function SessionInfoHeader({
   sessionId,
@@ -37,17 +32,11 @@ export function SessionInfoHeader({
       <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4" />
-          <span>
-            {new Date(createdAt).toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </span>
+          <span>{formatDateLong(createdAt)}</span>
         </div>
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4" />
-          <span>Duration: {formatTime(duration)}</span>
+          <span>Duration: {formatClock(duration)}</span>
         </div>
         <div className="flex items-center gap-2">
           <MessageSquare className="w-4 h-4" />

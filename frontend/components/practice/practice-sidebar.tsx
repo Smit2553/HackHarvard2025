@@ -9,7 +9,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ProgressData, PopularItem } from "@/types/practice";
+import { ProgressData, PopularItem } from "@/lib/types";
 
 interface SidebarSection {
   title: string;

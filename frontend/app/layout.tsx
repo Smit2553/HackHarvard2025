@@ -4,6 +4,7 @@ import "./globals.css";
 import { VapiProvider } from "@/components/VapiProvider";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -68,12 +69,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <VapiProvider>
-          <ThemeProvider defaultTheme="system" attribute="class" enableSystem>
-            {children}
-            <Toaster />
-          </ThemeProvider>
-        </VapiProvider>
+        <Suspense fallback={null}>
+          <VapiProvider>
+            <ThemeProvider defaultTheme="system" attribute="class" enableSystem>
+              {children}
+              <Toaster />
+            </ThemeProvider>
+          </VapiProvider>
+        </Suspense>
       </body>
     </html>
   );

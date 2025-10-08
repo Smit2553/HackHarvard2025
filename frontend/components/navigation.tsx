@@ -10,7 +10,6 @@ import {
   User,
   LogOut,
   Settings,
-  LayoutDashboard,
   TrendingUp,
 } from "lucide-react";
 import { useState, useEffect } from "react";

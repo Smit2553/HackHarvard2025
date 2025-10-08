@@ -8,7 +8,8 @@ import { PracticeSearch } from "@/components/practice/practice-search";
 import { PracticeFilters } from "@/components/practice/practice-filters";
 import { PracticeSidebar } from "@/components/practice/practice-sidebar";
 import { Pagination } from "@/components/pagination";
-import { Company, Transcript } from "@/types/practice";
+import { Company, Transcript } from "@/lib/types";
+import { formatDuration } from "@/lib/format";
 
 const companies: Company[] = [
   {
@@ -157,13 +158,6 @@ export default function CompanyPracticePage() {
   }, [currentPage, filteredCompanies]);
 
   const totalPages = Math.ceil(filteredCompanies.length / ITEMS_PER_PAGE);
-
-  const formatDuration = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    if (hours > 0) return `${hours}h ${minutes % 60}m`;
-    return `${minutes}m`;
-  };
 
   const totalPracticeTime = transcripts.reduce(
     (sum, t) => sum + (t.call_duration || 0),

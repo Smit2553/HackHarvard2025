@@ -15,7 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Pagination } from "@/components/pagination";
-import { Problem, Transcript } from "@/types/practice";
+import { Problem, Transcript } from "@/lib/types";
+import { formatDuration } from "@/lib/format";
 
 const problems: Problem[] = [
   {
@@ -225,13 +226,6 @@ export default function ProblemsPage() {
     easy: problems.filter((p) => p.difficulty === "easy").length,
     medium: problems.filter((p) => p.difficulty === "medium").length,
     hard: problems.filter((p) => p.difficulty === "hard").length,
-  };
-
-  const formatDuration = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    if (hours > 0) return `${hours}h ${minutes % 60}m`;
-    return `${minutes}m`;
   };
 
   const totalPracticeTime = transcripts.reduce(

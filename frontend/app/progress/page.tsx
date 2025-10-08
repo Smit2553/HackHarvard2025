@@ -21,14 +21,8 @@ import {
   Code,
   ArrowLeft,
 } from "lucide-react";
-
-interface Transcript {
-  id: number;
-  call_duration: number;
-  user_messages: number;
-  assistant_messages: number;
-  created_at: string;
-}
+import { formatDuration, formatTimeAgo } from "@/lib/format";
+import { Transcript } from "@/lib/types";
 
 export default function ProgressPage() {
   const router = useRouter();
@@ -106,36 +100,6 @@ export default function ProgressPage() {
     communication: 82,
     problemSolving: 78,
     implementation: 85,
-  };
-
-  const formatDuration = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    if (hours > 0) return `${hours}h ${minutes % 60}m`;
-    return `${minutes}m`;
-  };
-
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInHours = diffInMs / (1000 * 60 * 60);
-    const diffInDays = diffInHours / 24;
-
-    if (diffInHours < 1) {
-      const minutes = Math.floor(diffInMs / (1000 * 60));
-      return `${minutes}m ago`;
-    } else if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)}h ago`;
-    } else if (diffInDays < 7) {
-      return `${Math.floor(diffInDays)}d ago`;
-    } else {
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
-      });
-    }
   };
 
   const weeklyProgress = useMemo(() => {
@@ -345,7 +309,7 @@ export default function ProgressPage() {
                             </div>
                             <div className="text-sm text-muted-foreground">
                               {formatDuration(t.call_duration)} •{" "}
-                              {formatTimeAgo(t.created_at)}
+                              {formatTimeAgo(t.created_at, "detailed")}
                             </div>
                           </div>
                           <ArrowRight className="w-4 h-4 text-muted-foreground" />
