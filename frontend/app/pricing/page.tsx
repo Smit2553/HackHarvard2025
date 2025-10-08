@@ -119,7 +119,7 @@ export default function PricingPage() {
                       if (plan.name === "Team") {
                         window.location.href = "mailto:"; // add email
                       } else {
-                        router.push("/"); // add sign-up
+                        router.push("/signup");
                       }
                     }}
                   >

@@ -1,11 +1,16 @@
 "use client";
 
 import { Navigation } from "@/components/navigation";
-import { useState, useMemo } from "react";
-import { Search, TrendingUp } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { PracticePageLayout } from "@/components/practice/practice-page-layout";
+import { PracticeSearch } from "@/components/practice/practice-search";
+import { PracticeFilters } from "@/components/practice/practice-filters";
+import { PracticeSidebar } from "@/components/practice/practice-sidebar";
+import { Pagination } from "@/components/pagination";
+import { Company, Transcript } from "@/types/practice";
 
-const companies = [
+const companies: Company[] = [
   {
     id: "google",
     name: "Google",
@@ -93,10 +98,35 @@ const companies = [
   },
 ];
 
+const ITEMS_PER_PAGE = 6;
+
 export default function CompanyPracticePage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [transcripts, setTranscripts] = useState<Transcript[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    const fetchTranscripts = async () => {
+      try {
+        const response = await fetch(
+          "https://harvardapi.codestacx.com/api/transcripts",
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setTranscripts(Array.isArray(data) ? data : []);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    void fetchTranscripts();
+  }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedFilter]);
 
   const filteredCompanies = useMemo(() => {
     let filtered = companies;
@@ -120,205 +150,170 @@ export default function CompanyPracticePage() {
     return filtered;
   }, [searchQuery, selectedFilter]);
 
+  const paginatedCompanies = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+    return filteredCompanies.slice(start, end);
+  }, [currentPage, filteredCompanies]);
+
+  const totalPages = Math.ceil(filteredCompanies.length / ITEMS_PER_PAGE);
+
+  const formatDuration = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    if (hours > 0) return `${hours}h ${minutes % 60}m`;
+    return `${minutes}m`;
+  };
+
+  const totalPracticeTime = transcripts.reduce(
+    (sum, t) => sum + (t.call_duration || 0),
+    0,
+  );
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
-
       <main className="flex-1">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24">
-          <div className="grid lg:grid-cols-3 gap-12">
-            <div className="lg:col-span-2">
-              <div className="mb-8">
-                <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
-                  Choose a company
-                </h1>
-                <p className="text-lg text-muted-foreground">
-                  Practice with real interview questions
-                </p>
+        <PracticePageLayout
+          sidebar={
+            <PracticeSidebar
+              sections={[
+                {
+                  title: "How to choose",
+                  content: (
+                    <div className="space-y-3 text-sm text-muted-foreground">
+                      <p>
+                        If you have an upcoming interview, start with that
+                        specific company.
+                      </p>
+                      <p>
+                        Otherwise, Google and Meta problems cover most common
+                        patterns.
+                      </p>
+                      <p>For system design focus, try Netflix or Uber.</p>
+                    </div>
+                  ),
+                },
+              ]}
+              showProgress
+              progressData={{
+                sessionsCompleted: transcripts.length,
+                problemsSolved: transcripts.length,
+                practiceTime: formatDuration(totalPracticeTime),
+              }}
+              showPopular
+              popularItems={[
+                { id: "google", title: "Google", subtitle: "Most practiced" },
+                { id: "meta", title: "Meta", subtitle: "Trending" },
+                { id: "amazon", title: "Amazon", subtitle: "High demand" },
+              ]}
+              onPopularClick={(id) => router.push(`/interview?company=${id}`)}
+            />
+          }
+        >
+          <div className="mb-8">
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
+              Choose a company
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              Practice with real interview questions
+            </p>
+          </div>
+
+          <div className="mb-6">
+            <PracticeFilters
+              options={[
+                { value: "all", label: "All companies" },
+                { value: "trending", label: "Trending" },
+                { value: "beginner", label: "Beginner friendly" },
+              ]}
+              selected={selectedFilter}
+              onSelect={setSelectedFilter}
+            />
+          </div>
+
+          <div className="mb-8">
+            <PracticeSearch
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search companies or topics..."
+            />
+          </div>
+
+          <div className="grid gap-4">
+            {paginatedCompanies.length === 0 ? (
+              <div className="py-24 text-center">
+                <p className="text-muted-foreground">No companies found</p>
               </div>
-
-              <div className="flex items-center gap-2 mb-6">
+            ) : (
+              paginatedCompanies.map((company) => (
                 <button
-                  onClick={() => setSelectedFilter("all")}
-                  className={`cursor-pointer px-3 py-1.5 text-sm rounded-md transition-colors ${
-                    selectedFilter === "all"
-                      ? "bg-foreground text-background"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
+                  key={company.id}
+                  onClick={() =>
+                    router.push(`/interview?company=${company.id}`)
+                  }
+                  className="cursor-pointer group p-6 rounded-lg border border-border/50 hover:border-border transition-all text-left hover:bg-muted/30"
                 >
-                  All companies
-                </button>
-                <button
-                  onClick={() => setSelectedFilter("trending")}
-                  className={`cursor-pointer px-3 py-1.5 text-sm rounded-md transition-colors ${
-                    selectedFilter === "trending"
-                      ? "bg-foreground text-background"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Trending
-                </button>
-                <button
-                  onClick={() => setSelectedFilter("beginner")}
-                  className={`cursor-pointer px-3 py-1.5 text-sm rounded-md transition-colors ${
-                    selectedFilter === "beginner"
-                      ? "bg-foreground text-background"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Beginner friendly
-                </button>
-              </div>
-
-              <div className="relative mb-8">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search companies or topics..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 text-sm border border-border/50 rounded-lg bg-transparent focus:outline-none focus:border-border transition-colors"
-                />
-              </div>
-
-              <div className="grid gap-4">
-                {filteredCompanies.length === 0 ? (
-                  <div className="py-24 text-center">
-                    <p className="text-muted-foreground">No companies found</p>
-                  </div>
-                ) : (
-                  filteredCompanies.map((company) => (
-                    <button
-                      key={company.id}
-                      onClick={() => router.push(`/interview`)}
-                      className="cursor-pointer group p-6 rounded-lg border border-border/50 hover:border-border/100 transition-all text-left hover:bg-muted/30"
-                    >
-                      <div className="space-y-3">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h3 className="text-lg font-medium">
-                                {company.name}
-                              </h3>
-                              {company.trending && (
-                                <span className="text-xs px-1.5 py-0.5 rounded bg-foreground text-background">
-                                  Trending
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {company.description}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-lg font-medium">
-                              {company.problems}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              problems
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-wrap gap-2">
-                          {company.topics.map((topic, idx) => (
-                            <span
-                              key={idx}
-                              className="text-xs px-2 py-1 rounded-md bg-muted"
-                            >
-                              {topic}
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-medium">
+                            {company.name}
+                          </h3>
+                          {company.trending && (
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-foreground text-background">
+                              Trending
                             </span>
-                          ))}
+                          )}
                         </div>
-
-                        <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                          <span>
-                            {company.difficulty.easy} Easy •{" "}
-                            {company.difficulty.medium} Medium •{" "}
-                            {company.difficulty.hard} Hard
-                          </span>
-                          <span>{company.avgTime} avg</span>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {company.description}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-medium">
+                          {company.problems}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          problems
                         </div>
                       </div>
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
-
-            <div className="lg:block hidden">
-              <div className="sticky top-8 space-y-6">
-                <div className="p-6 rounded-lg border border-border/50 space-y-4">
-                  <h3 className="font-medium">How to choose</h3>
-                  <div className="space-y-3 text-sm text-muted-foreground">
-                    <p>
-                      If you have an upcoming interview, start with that
-                      specific company.
-                    </p>
-                    <p>
-                      Otherwise, Google and Meta problems cover most common
-                      patterns.
-                    </p>
-                    <p>For system design focus, try Netflix or Uber.</p>
-                  </div>
-                </div>
-
-                <div className="p-6 rounded-lg border border-border/50 space-y-4">
-                  <h3 className="font-medium">Your progress</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        Sessions completed
-                      </span>
-                      <span className="text-sm font-medium">28</span>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        Problems solved
-                      </span>
-                      <span className="text-sm font-medium">23</span>
+                    <div className="flex flex-wrap gap-2">
+                      {company.topics.map((topic, idx) => (
+                        <span
+                          key={idx}
+                          className="text-xs px-2 py-1 rounded-md bg-muted"
+                        >
+                          {topic}
+                        </span>
+                      ))}
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
-                        Practice time
+                    <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                      <span>
+                        {company.difficulty.easy} Easy •{" "}
+                        {company.difficulty.medium} Medium •{" "}
+                        {company.difficulty.hard} Hard
                       </span>
-                      <span className="text-sm font-medium">21 hrs</span>
+                      <span>{company.avgTime} avg</span>
                     </div>
                   </div>
-                </div>
-
-                <div className="p-6 rounded-lg bg-muted/30 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4" />
-                    <h3 className="font-medium text-sm">
-                      Most practiced this week
-                    </h3>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Google</span>
-                      <span className="text-muted-foreground">
-                        2.3k sessions
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Meta</span>
-                      <span className="text-muted-foreground">
-                        1.8k sessions
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Amazon</span>
-                      <span className="text-muted-foreground">
-                        1.5k sessions
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+                </button>
+              ))
+            )}
           </div>
-        </div>
+
+          {totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={ITEMS_PER_PAGE}
+              totalItems={filteredCompanies.length}
+            />
+          )}
+        </PracticePageLayout>
       </main>
     </div>
   );

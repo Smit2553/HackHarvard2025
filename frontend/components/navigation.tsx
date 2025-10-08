@@ -1,8 +1,18 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Moon, Sun, User, LogOut, Settings } from "lucide-react";
+import {
+  Menu,
+  X,
+  Moon,
+  Sun,
+  User,
+  LogOut,
+  Settings,
+  LayoutDashboard,
+  TrendingUp,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
@@ -21,39 +31,34 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LoginDialog } from "@/components/login";
 
-// User type definition
 interface User {
   email: string;
   name: string;
   avatar: string;
 }
 
-// Dummy user data
 const DUMMY_USER: User = {
   email: "john.doe@example.com",
   name: "John Doe",
   avatar: "https://github.com/soradotwav.png",
 };
 
-// Storage keys
 const AUTH_STORAGE_KEY = "offscript_auth";
 
 export function Navigation() {
   const router = useRouter();
+  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { setTheme, resolvedTheme } = useTheme();
 
-  // Auth state
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
-  // Load auth state from localStorage on mount
   useEffect(() => {
     setMounted(true);
 
-    // Load persisted auth state
     if (typeof window !== "undefined") {
       try {
         const storedAuth = localStorage.getItem(AUTH_STORAGE_KEY);
@@ -71,7 +76,6 @@ export function Navigation() {
     }
   }, []);
 
-  // Persist auth state to localStorage whenever it changes
   useEffect(() => {
     if (typeof window !== "undefined") {
       const authData = {
@@ -90,19 +94,16 @@ export function Navigation() {
     setShowLoginDialog(true);
   };
 
-  // Handle successful login from dialog
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);
     setUser(DUMMY_USER);
     setShowLoginDialog(false);
   };
 
-  // Logout function
   const handleLogout = () => {
     setIsLoggedIn(false);
     setUser(null);
     setMobileMenuOpen(false);
-    console.log("Logged out");
     router.push("/");
   };
 
@@ -111,8 +112,9 @@ export function Navigation() {
     router.push(path);
   };
 
+  // Different nav items for logged in vs logged out
   const navigationItems = [
-    { name: "Problems", path: "/" },
+    { name: "Problems", path: "/practice/problems" },
     { name: "Companies", path: "/practice/companies" },
     { name: "Pricing", path: "/pricing" },
   ];
@@ -122,12 +124,12 @@ export function Navigation() {
       <div className="flex items-center gap-4 md:gap-6">
         <div
           className="flex items-center gap-2 group cursor-pointer"
-          onClick={() => handleNavigation("/")}
+          onClick={() => handleNavigation(isLoggedIn ? "/dashboard" : "/")}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
-              handleNavigation("/");
+              handleNavigation(isLoggedIn ? "/dashboard" : "/");
             }
           }}
         >
@@ -139,26 +141,20 @@ export function Navigation() {
         </div>
 
         <nav className="hidden md:flex items-center gap-6">
-          <button
-            type="button"
-            className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Problems
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push("/practice/companies")}
-            className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Companies
-          </button>
-          <button
-            type="button"
-            className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors"
-            onClick={() => router.push("/pricing")}
-          >
-            Pricing
-          </button>
+          {navigationItems.map((item) => (
+            <button
+              key={item.name}
+              type="button"
+              onClick={() => router.push(item.path)}
+              className={`cursor-pointer text-sm transition-colors ${
+                pathname === item.path
+                  ? "text-foreground font-medium"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {item.name}
+            </button>
+          ))}
         </nav>
       </div>
 
@@ -200,9 +196,9 @@ export function Navigation() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push("/profile")}>
-                <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
+              <DropdownMenuItem onClick={() => router.push("/progress")}>
+                <TrendingUp className="mr-2 h-4 w-4" />
+                <span>Progress</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => router.push("/settings")}>
                 <Settings className="mr-2 h-4 w-4" />
@@ -219,22 +215,33 @@ export function Navigation() {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <button
-            type="button"
-            onClick={handleLogin}
-            className="cursor-pointer h-9 px-3 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted flex items-center"
-          >
-            Sign in
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={handleLogin}
+              className="cursor-pointer h-9 px-3 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted flex items-center"
+            >
+              Sign in
+            </button>
+            <Button
+              size="sm"
+              className="h-9"
+              onClick={() => router.push("/signup")}
+            >
+              Get Started
+            </Button>
+          </>
         )}
 
-        <Button
-          size="sm"
-          className="h-9"
-          onClick={() => router.push("/practice")}
-        >
-          Start Practice
-        </Button>
+        {isLoggedIn && (
+          <Button
+            size="sm"
+            className="h-9"
+            onClick={() => router.push("/dashboard")}
+          >
+            Dashboard
+          </Button>
+        )}
       </div>
 
       <div className="flex md:hidden items-center gap-2">
@@ -291,9 +298,9 @@ export function Navigation() {
                     <button
                       type="button"
                       className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors text-left w-full px-3 py-2 rounded-md hover:bg-muted/50"
-                      onClick={() => handleNavigation("/profile")}
+                      onClick={() => handleNavigation("/progress")}
                     >
-                      Profile
+                      Progress
                     </button>
                     <button
                       type="button"
@@ -305,9 +312,9 @@ export function Navigation() {
                     <Button
                       size="sm"
                       className="w-full"
-                      onClick={() => handleNavigation("/practice")}
+                      onClick={() => handleNavigation("/dashboard")}
                     >
-                      Start Practice
+                      Dashboard
                     </Button>
                     <button
                       type="button"
@@ -332,9 +339,9 @@ export function Navigation() {
                     <Button
                       size="sm"
                       className="w-full"
-                      onClick={() => handleNavigation("/practice")}
+                      onClick={() => handleNavigation("/signup")}
                     >
-                      Start Practice
+                      Get Started
                     </Button>
                   </>
                 )}

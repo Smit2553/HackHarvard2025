@@ -78,7 +78,7 @@ export default function ScoreOverviewPage() {
       }
     };
 
-    fetchTranscript();
+    void fetchTranscript();
   }, [transcriptId]);
 
   useEffect(() => {
@@ -97,17 +97,15 @@ export default function ScoreOverviewPage() {
         setImprovements(data.points || []);
       } catch (err) {
         console.error("Error fetching improvements:", err);
-        // Gracefully fail by showing no improvements
         setImprovements([]);
       } finally {
         setLoadingImprovements(false);
       }
     };
 
-    fetchImprovements();
+    void fetchImprovements();
   }, [transcriptId]);
 
-  // Extract scores from ratings or use defaults
   const scores = transcript?.ratings
     ? {
         communication: gradeToScore(transcript.ratings.communication_grade),
@@ -120,10 +118,8 @@ export default function ScoreOverviewPage() {
         implementation: 75,
       };
 
-  // Extract strengths from ratings
   const strengths = transcript?.ratings?.strengths || [];
 
-  // Convert improvement strings to ImprovementPoint format
   const improvementPoints = improvements.map((point) => ({
     title: "Improvement Area",
     description: point,
@@ -141,8 +137,8 @@ export default function ScoreOverviewPage() {
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <p className="text-red-500 mb-4">{error}</p>
-            <Button onClick={() => router.push("/profile")}>
-              Back to Profile
+            <Button onClick={() => router.push("/progress")}>
+              Back to Your Progress
             </Button>
           </div>
         </main>
@@ -167,15 +163,17 @@ export default function ScoreOverviewPage() {
 
       <main className="flex-1">
         <div className="max-w-6xl mx-auto px-4 md:px-6 py-16">
-          {/* Back button if viewing specific transcript */}
+          {/* Back button - updated to match progress page style */}
           {transcriptId && (
-            <button
-              onClick={() => router.push("/profile")}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mb-8"
+              onClick={() => router.push("/progress")}
             >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Profile</span>
-            </button>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Your Progress
+            </Button>
           )}
 
           <SessionInfoHeader
